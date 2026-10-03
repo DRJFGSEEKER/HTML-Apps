@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Line upon Line</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#10141c;--panel:#171d29;--line:rgba(214,190,140,.16);--line-strong:rgba(214,190,140,.32);
+  --text:#ece6d8;--dim:#a3abbb;--accent:#d4b06a;--accent-ink:#1a1408;--accent-soft:rgba(212,176,106,.14);--accent-line:rgba(212,176,106,.45);
+  --danger:#e08f6b;--danger-line:rgba(224,143,107,.5);
+  --font-head:'EB Garamond',Georgia,serif;--font-body:'Source Sans 3',system-ui,sans-serif;--font-mono:ui-monospace,Menlo,Consolas,monospace;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+button,input,select,textarea{font:inherit;color:inherit;}
+a{color:var(--accent);}
+::selection{background:var(--accent-soft);}
+
+/* ── top bar ── */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:10px 18px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:var(--bg);border-bottom:1px solid var(--line);}
+.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto;cursor:pointer;}
+.brand-title{font-family:var(--font-head);font-size:1.35rem;font-weight:600;color:var(--text);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;}
+.brand-sub{font-size:.74rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.search{position:relative;width:min(340px,38vw);}
+.search input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 34px;font-size:.92rem;}
+.search input:focus{outline:none;border-color:var(--accent);}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.55;}
+.proj-sel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:180px;font-size:.88rem;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 14px;border-radius:8px;border:1px solid var(--line-strong);background:var(--panel);color:var(--text);cursor:pointer;font-size:.9rem;white-space:nowrap;}
+.btn:hover{border-color:var(--accent);}
+.btn:focus-visible,.icon-btn:focus-visible,.side a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600;}
+.btn.pri:hover{filter:brightness(1.08);}
+.btn.ghost{background:transparent;}
+.btn.quiet{background:transparent;border-color:transparent;color:var(--dim);}
+.btn.quiet:hover{color:var(--text);border-color:var(--line);}
+.btn.danger{color:var(--danger);border-color:var(--danger-line);background:transparent;}
+.btn.armed{background:var(--danger);border-color:var(--danger);color:#fff;}
+.btn.sm{min-height:30px;padding:4px 10px;font-size:.82rem;}
+.btn:disabled{opacity:.45;cursor:default;}
+.icon-btn{background:none;border:1px solid transparent;border-radius:8px;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;color:var(--dim);cursor:pointer;font-size:1.1rem;}
+.icon-btn:hover{color:var(--text);border-color:var(--line);}
+.menu-btn{display:none;}
+
+/* ── shell ── */
+.shell{display:flex;min-height:calc(100vh - 60px);}
+.side{width:260px;flex-shrink:0;border-right:1px solid var(--line);padding:14px 10px 40px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;}
+.side-group{margin-top:16px;}
+.side-label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:0 10px 6px;display:flex;justify-content:space-between;align-items:center;}
+.side a{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:.92rem;cursor:pointer;}
+.side a:hover{background:var(--panel);}
+.side a.on{background:var(--accent-soft);color:var(--accent);}
+.side a .n{margin-left:auto;font-size:.76rem;color:var(--dim);font-variant-numeric:tabular-nums;}
+.side a .ic{width:20px;text-align:center;flex-shrink:0;}
+.side a.add{color:var(--dim);font-size:.85rem;}
+.side a.add:hover{color:var(--accent);}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin:0 5px;}
+main{flex:1;min-width:0;padding:22px 28px 80px;}
+.scrim{display:none;}
+
+/* ── list ── */
+.list-head{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+.list-head h1{font-family:var(--font-head);font-size:1.9rem;font-weight:600;margin:0;line-height:1.2;}
+.list-desc{color:var(--dim);font-size:.93rem;margin:4px 0 14px;max-width:70ch;}
+.list-tools{display:flex;gap:8px;align-items:center;margin-left:auto;}
+.list-tools select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.85rem;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px;}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--dim);background:transparent;cursor:pointer;}
+.chip:hover{color:var(--text);border-color:var(--line-strong);}
+.chip.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line);}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 12px;cursor:pointer;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:6px;text-align:left;}
+.card:hover{border-color:var(--line-strong);transform:translateY(-1px);}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--accent));}
+.card-type{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--c,var(--dim));display:flex;gap:6px;align-items:center;}
+.card-title{font-family:var(--font-head);font-size:1.15rem;font-weight:600;line-height:1.25;}
+.card-snip{font-size:.87rem;color:var(--dim);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.card-foot{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--dim);margin-top:auto;padding-top:4px;}
+.empty{border:1px dashed var(--line-strong);border-radius:var(--radius);padding:34px 24px;text-align:center;color:var(--dim);}
+.empty h3{font-family:var(--font-head);color:var(--text);margin:0 0 6px;font-size:1.25rem;}
+
+/* ── entry ── */
+.entry{max-width:820px;}
+.crumbs{font-size:.82rem;color:var(--dim);display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.crumbs a{color:var(--dim);cursor:pointer;text-decoration:none;}
+.crumbs a:hover{color:var(--accent);}
+.entry h1{font-family:var(--font-head);font-size:2.2rem;font-weight:600;line-height:1.15;margin:4px 0 6px;}
+.entry-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.8rem;color:var(--dim);margin-bottom:18px;}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--c,var(--line));color:var(--c,var(--dim));}
+.entry-actions{display:flex;gap:8px;margin-left:auto;}
+.fld{margin:0 0 22px;}
+.fld-label{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+.rich p{margin:0 0 10px;}
+.rich ul{margin:0 0 10px;padding-left:1.3rem;}
+.rich a.wl{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent);cursor:pointer;}
+.rich .broken{color:var(--dim);border-bottom:1px dashed var(--dim);}
+.refs{display:flex;flex-wrap:wrap;gap:6px;}
+.ref{display:inline-flex;align-items:center;gap:5px;font-size:.85rem;padding:4px 11px;border-radius:999px;background:var(--panel);border:1px solid var(--accent-line);color:var(--accent);text-decoration:none;}
+.ref:hover{background:var(--accent-soft);}
+.ref.plain{color:var(--text);border-color:var(--line);}
+.pos{border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;background:var(--panel);}
+.pos h4{margin:0 0 6px;font-family:var(--font-head);font-size:1.05rem;}
+.pos .sub{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:8px 0 3px;}
+.links-box{border-top:1px solid var(--line);margin-top:26px;padding-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.links-box h3{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 8px;font-weight:600;}
+.lnk{display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:.92rem;}
+.lnk:hover .lnk-t{color:var(--accent);}
+.lnk-l{font-size:.75rem;color:var(--dim);}
+.tags{display:flex;flex-wrap:wrap;gap:6px;}
+
+/* ── forms ── */
+.form{max-width:820px;}
+.form h1{font-family:var(--font-head);font-size:1.6rem;margin:0 0 16px;font-weight:600;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+label.f{display:block;margin-bottom:14px;}
+label.f>span,.f-cap{display:block;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:5px;font-weight:600;}
+.f-hint{font-size:.78rem;color:var(--dim);margin-top:4px;}
+.inp,textarea.inp,select.inp{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:.95rem;}
+textarea.inp{min-height:110px;resize:vertical;line-height:1.5;}
+.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.inp.title{font-family:var(--font-head);font-size:1.4rem;}
+.form-actions{position:sticky;bottom:0;display:flex;gap:8px;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 30%);margin-top:10px;}
+.sub-box{border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:10px;background:color-mix(in srgb,var(--panel) 60%,transparent);}
+.link-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+.link-row .t{flex:1;font-size:.92rem;}
+
+/* ── timeline ── */
+.tl{position:relative;margin-left:8px;padding-left:28px;border-left:2px solid var(--line-strong);max-width:820px;}
+.tl-item{position:relative;margin-bottom:16px;cursor:pointer;}
+.tl-item::before{content:"";position:absolute;left:-36px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--c,var(--accent));border:3px solid var(--bg);}
+.tl-when{font-size:.8rem;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:.03em;}
+.tl-title{font-family:var(--font-head);font-size:1.12rem;font-weight:600;}
+.tl-item:hover .tl-title{color:var(--accent);}
+.tl-snip{font-size:.86rem;color:var(--dim);}
+
+/* ── scripture index ── */
+.si-work{margin-bottom:24px;}
+.si-work h2{font-family:var(--font-head);font-size:1.3rem;margin:0 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px;}
+.si-book{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);}
+.si-book-name{font-weight:600;font-size:.92rem;}
+.si-refs{display:flex;flex-direction:column;gap:4px;}
+.si-ref{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;font-size:.88rem;}
+.si-ref .ent{color:var(--dim);cursor:pointer;}
+.si-ref .ent:hover{color:var(--accent);}
+
+/* ── settings ── */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;flex-wrap:wrap;}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:9px 12px;cursor:pointer;color:var(--dim);font-size:.92rem;}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.set-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.set-card h3{margin:0 0 4px;font-family:var(--font-head);font-size:1.1rem;}
+.set-card p{margin:0 0 10px;color:var(--dim);font-size:.88rem;}
+.set-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.set-row .inp{width:auto;flex:1;min-width:120px;}
+.mini{font-size:.78rem;color:var(--dim);}
+.field-row{display:grid;grid-template-columns:1fr 150px auto;gap:6px;align-items:center;margin-bottom:6px;}
+.field-row .inp{padding:6px 9px;font-size:.88rem;}
+.type-head{display:flex;gap:8px;align-items:center;cursor:pointer;}
+.type-head .nm{font-weight:600;flex:1;}
+.emoji-inp{width:54px!important;flex:0 0 54px!important;min-width:0!important;text-align:center;}
+input[type=color].inp{padding:2px;width:46px;flex:0 0 46px;height:38px;}
+.group-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:16px 0 8px;}
+
+/* ── modal + toast ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:7vh 14px;overflow-y:auto;}
+.modal-ov.on{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--line-strong);border-radius:12px;max-width:540px;width:100%;padding:20px;}
+.modal h2{font-family:var(--font-head);margin:0 0 6px;font-size:1.35rem;}
+.modal p{color:var(--dim);font-size:.9rem;margin:0 0 12px;}
+.radio{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;}
+.radio:has(input:checked){border-color:var(--accent);background:var(--accent-soft);}
+.radio input{margin-top:4px;accent-color:var(--accent);}
+.radio b{display:block;font-weight:600;}
+.radio small{color:var(--dim);}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:.9rem;opacity:0;pointer-events:none;transition:.25s;z-index:500;max-width:90vw;text-align:center;}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── responsive ── */
+@media (max-width:860px){
+  .menu-btn{display:inline-flex;}
+  .side{position:fixed;left:0;top:0;bottom:0;height:100%;z-index:60;background:var(--bg);transform:translateX(-100%);transition:transform .22s;padding-top:calc(16px + env(safe-area-inset-top,0px));width:280px;}
+  .side.open{transform:none;box-shadow:0 0 40px rgba(0,0,0,.5);}
+  .scrim.on{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55;}
+  main{padding:16px 14px 90px;}
+  .search{width:auto;flex:1;}
+  .brand{display:none;}
+  .proj-sel{max-width:110px;}
+  .new-txt{display:none;}
+  .row2,.links-box{grid-template-columns:1fr;}
+  .entry h1{font-size:1.7rem;}
+  .si-book{grid-template-columns:1fr;}
+  .field-row{grid-template-columns:1fr 110px auto;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="icon-btn menu-btn" data-act="menu" aria-label="Menu">☰</button>
+  <div class="brand" data-act="home"><span class="brand-title" id="brandTitle"></span><span class="brand-sub" id="brandSub"></span></div>
+  <select class="proj-sel" id="projSel" aria-label="Project" hidden></select>
+  <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search…" aria-label="Search" autocomplete="off"></div>
+  <button class="btn pri" data-act="new" aria-label="New entry">＋<span class="new-txt"> New</span></button>
+</header>
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <div class="scrim" id="scrim" data-act="menu-close"></div>
+  <main id="main"></main>
+</div>
+<div class="modal-ov" id="modal"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* ══ LINKED BACKUPS ══════════════════════════════════════════════════════════
+   An add-on to the existing Export/Import — it doesn't replace or change them.
+   Three destinations, each a one-button backup/restore once set up:
+     • Share sheet / file   — any device. Sends a .json file to the OS share sheet
+                              (pick Google Drive, Files, Dropbox…) or saves it.
+     • Linked folder        — File System Access API (Chrome/Edge on desktop). The
+                              folder choice is remembered in IndexedDB.
+     • Google Drive         — Google Identity Services + Drive REST API, drive.file
+                              scope (the app can only see files it created itself).
+   Usage: BackupLinks.init({...config}) → returns { open() }.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+
+  var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  var DRIVE_API = 'https://www.googleapis.com/drive/v3';
+  var DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
+
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function pad(n){return (n<10?'0':'')+n;}
+  function stamp(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds());}
+  function ago(ts){
+    if(!ts)return 'never';
+    var s=Math.round((Date.now()-ts)/1000);
+    if(s<60)return 'just now';
+    var m=Math.round(s/60); if(m<60)return m+' min ago';
+    var h=Math.round(m/60); if(h<24)return h+(h===1?' hour ago':' hours ago');
+    var d=Math.round(h/24); if(d<30)return d+(d===1?' day ago':' days ago');
+    return new Date(ts).toLocaleDateString();
+  }
+  function fmtDate(ts){var d=new Date(ts);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+', '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}
+  function fmtSize(b){if(b==null||isNaN(b))return '';b=+b;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';return (b/1048576).toFixed(1)+' MB';}
+
+  function init(cfg){
+    var KEY = cfg.appKey + '_backuplinks';
+    var DB  = cfg.appKey + '-backup-links';
+    var t = cfg.theme || {};
+    var st = loadSt();
+    var folderHandle = null;        // FileSystemDirectoryHandle, restored from IndexedDB
+    var folderSupported = typeof window.showDirectoryPicker === 'function';
+    var accessToken = null, tokenExp = 0, gisPromise = null;
+    var busy = '';                  // short message while an operation runs
+    var notice = null;              // {kind:'ok'|'err', text}
+    var listing = null;             // {source:'folder'|'drive', items:[...]} for restore picker
+    var staged = null;              // {label, getText} pending a replace-confirm
+    var armedId = null;             // tap-twice arming for destructive restores
+
+    /* ── persisted settings ── */
+    function loadSt(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
+    function saveSt(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+
+    /* ── IndexedDB (only place a folder handle can be remembered) ── */
+    function idb(){
+      return new Promise(function(res,rej){
+        if(!window.indexedDB){rej(new Error('IndexedDB unavailable'));return;}
+        var r=indexedDB.open(DB,1);
+        r.onupgradeneeded=function(){r.result.createObjectStore('kv');};
+        r.onsuccess=function(){res(r.result);};
+        r.onerror=function(){rej(r.error);};
+      });
+    }
+    function idbOp(mode,fn){
+      return idb().then(function(db){return new Promise(function(res,rej){
+        var tx=db.transaction('kv',mode),req=fn(tx.objectStore('kv'));
+        tx.oncomplete=function(){res(req&&req.result);};
+        tx.onerror=function(){rej(tx.error);};
+      });});
+    }
+    function idbGet(k){return idbOp('readonly',function(s){return s.get(k);});}
+    function idbSet(k,v){return idbOp('readwrite',function(s){return s.put(v,k);});}
+    function idbDel(k){return idbOp('readwrite',function(s){return s.delete(k);});}
+
+    /* ── styles ── */
+    var css=
+      '.blk-ov{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:'+(t.z||400)+';display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:5vh 14px;-webkit-overflow-scrolling:touch;}'+
+      '.blk-ov.on{display:flex;}'+
+      '.blk{background:'+t.panel+';color:'+t.text+';border:1px solid '+t.line+';border-radius:12px;width:100%;max-width:560px;padding:20px 20px 16px;font-family:'+t.body+';margin-bottom:5vh;}'+
+      '.blk-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px;}'+
+      '.blk h2{font-family:'+t.head+';font-size:1.3rem;font-weight:600;color:'+t.accent+';margin:0;}'+
+      '.blk-x{background:none;border:none;color:'+t.dim+';font-size:1.4rem;cursor:pointer;padding:2px 6px;line-height:1;}'+
+      '.blk-status{font-size:.86rem;color:'+t.dim+';margin-bottom:14px;line-height:1.45;}'+
+      '.blk-all{width:100%;margin-bottom:6px;}'+
+      '.blk-sec{border-top:1px solid '+t.line+';padding:14px 0 12px;}'+
+      '.blk-sec h3{font-family:'+t.head+';font-size:1rem;font-weight:600;margin:0 0 4px;color:'+t.text+';display:flex;align-items:center;gap:8px;}'+
+      '.blk-dot{width:8px;height:8px;border-radius:50%;background:'+t.dim+';opacity:.5;flex-shrink:0;}'+
+      '.blk-dot.on{background:'+t.ok+';opacity:1;box-shadow:0 0 0 3px '+t.okBg+';}'+
+      '.blk-p{font-size:.86rem;color:'+t.dim+';line-height:1.5;margin:0 0 10px;}'+
+      '.blk-p b{color:'+t.text+';font-weight:600;}'+
+      '.blk-row{display:flex;flex-wrap:wrap;gap:8px;}'+
+      '.blk-btn{font-family:'+t.btnFont+';font-size:'+t.btnSize+';letter-spacing:.06em;text-transform:'+(t.btnCase||'none')+';background:'+t.btnBg+';color:'+t.accent+';border:1px solid '+t.accentLine+';border-radius:6px;padding:9px 13px;min-height:38px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}'+
+      '.blk-btn:hover:not(:disabled){border-color:'+t.accent+';}'+
+      '.blk-btn:focus-visible{outline:2px solid '+t.accent+';outline-offset:2px;}'+
+      '.blk-btn.pri{background:'+t.accentBg+';border-color:'+t.accent+';font-weight:600;}'+
+      '.blk-btn.quiet{background:transparent;color:'+t.dim+';border-color:'+t.line+';}'+
+      '.blk-btn.danger{color:'+t.danger+';border-color:'+t.danger+';background:'+t.dangerBg+';}'+
+      '.blk-btn.armed{background:'+t.danger+';color:#fff;border-color:'+t.danger+';}'+
+      '.blk-btn:disabled{opacity:.4;cursor:default;}'+
+      '.blk-note{font-size:.84rem;line-height:1.5;border-radius:8px;padding:10px 12px;margin:0 0 12px;}'+
+      '.blk-note.ok{background:'+t.okBg+';color:'+t.ok+';border:1px solid '+t.ok+';}'+
+      '.blk-note.err{background:'+t.dangerBg+';color:'+t.danger+';border:1px solid '+t.danger+';}'+
+      '.blk-note.busy{background:'+t.accentBg+';color:'+t.accent+';border:1px solid '+t.accentLine+';}'+
+      '.blk-note.warn{background:'+t.dangerBg+';color:'+t.text+';border:1px solid '+t.danger+';}'+
+      '.blk-list{margin-top:10px;border:1px solid '+t.line+';border-radius:8px;overflow:hidden;}'+
+      '.blk-li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-top:1px solid '+t.line+';}'+
+      '.blk-li:first-child{border-top:none;}'+
+      '.blk-li-name{font-family:'+t.mono+';font-size:.74rem;color:'+t.text+';word-break:break-all;}'+
+      '.blk-li-meta{font-size:.76rem;color:'+t.dim+';margin-top:2px;}'+
+      '.blk-list-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-size:.8rem;color:'+t.dim+';background:'+t.accentBg+';}'+
+      '.blk-inp{width:100%;background:rgba(0,0,0,.25);border:1px solid '+t.line+';border-radius:6px;color:'+t.text+';font-family:'+t.mono+';font-size:.78rem;padding:9px 10px;margin-bottom:8px;}'+
+      '.blk-inp:focus{outline:none;border-color:'+t.accent+';}'+
+      '.blk details{margin-top:8px;font-size:.84rem;color:'+t.dim+';}'+
+      '.blk summary{cursor:pointer;color:'+t.accent+';margin-bottom:6px;}'+
+      '.blk ol{margin:6px 0 4px 1.2rem;padding:0;line-height:1.55;}'+
+      '.blk ol li{margin-bottom:5px;}'+
+      '.blk code{font-family:'+t.mono+';font-size:.76rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:4px;color:'+t.text+';word-break:break-all;}'+
+      '.blk-foot{font-size:.76rem;color:'+t.dim+';border-top:1px solid '+t.line+';padding-top:10px;line-height:1.5;}';
+    var styleEl=document.createElement('style');styleEl.textContent=css;document.head.appendChild(styleEl);
+
+    var ov=document.createElement('div');
+    ov.className='blk-ov';
+    ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Linked backups');
+    ov.innerHTML='<div class="blk" id="'+cfg.appKey+'-blk"></div>';
+    document.body.appendChild(ov);
+    var panel=ov.firstChild;
+    var fileInput=document.createElement('input');
+    fileInput.type='file';fileInput.accept='.json,application/json,text/plain';fileInput.style.display='none';
+    document.body.appendChild(fileInput);
+
+    ov.addEventListener('click',function(e){if(e.target===ov)close();});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ov.classList.contains('on'))close();});
+    panel.addEventListener('click',onClick);
+    fileInput.addEventListener('change',function(){
+      var f=fileInput.files&&fileInput.files[0];fileInput.value='';
+      if(!f)return;
+      stageOrRestore({id:'file',label:f.name,getText:function(){return f.text();}},'a file');
+    });
+
+    // restore remembered folder handle in the background
+    idbGet('folder').then(function(h){if(h){folderHandle=h;render();}}).catch(function(){});
+
+    /* ── helpers ── */
+    function fileName(){return cfg.filePrefix+'-'+stamp()+'.json';}
+    function isLocalFile(){return location.protocol==='file:';}
+    function driveReady(){return !!st.driveClientId;}
+    function linkedCount(){return (folderHandle?1:0)+(st.driveConnected&&driveReady()&&!isLocalFile()?1:0);}
+    function recordBackup(where){
+      st.lastBackup={ts:Date.now(),where:where};saveSt();
+      try{cfg.onBackedUp&&cfg.onBackedUp(where);}catch(e){}
+    }
+    function setBusy(m){busy=m;notice=null;render();}
+    function done(kind,text){busy='';notice={kind:kind,text:text};render();}
+    function fail(e,prefix){
+      if(e&&e.name==='AbortError'){busy='';render();return;}   // user closed a picker — not an error
+      console.error('Linked backup:',e);
+      done('err',(prefix?prefix+' ':'')+(e&&e.message?e.message:String(e)));
+    }
+
+    /* ── share sheet / file ── */
+    function saveViaShareOrDownload(){
+      var json=cfg.getJSON(), name=fileName();
+      var file=null;
+      try{file=new File([json],name,{type:'application/json'});}catch(e){}
+      if(file&&navigator.canShare&&navigator.share){
+        var can=false;try{can=navigator.canShare({files:[file]});}catch(e){}
+        if(can){
+          setBusy('Opening your share sheet…');
+          navigator.share({files:[file],title:cfg.appName+' backup'}).then(function(){
+            recordBackup('your share sheet');
+            done('ok','Backup file sent: '+name);
+          }).catch(function(e){
+            if(e&&e.name==='AbortError'){busy='';render();return;}
+            download(json,name);
+          });
+          return;
+        }
+      }
+      download(json,name);
+    }
+    function download(json,name){
+      var url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+      var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(url);},4000);
+      recordBackup('a downloaded file');
+      done('ok','Saved '+name+' to your downloads.');
+    }
+
+    /* ── linked folder ── */
+    function ensurePerm(h){
+      var o={mode:'readwrite'};
+      return h.queryPermission(o).then(function(p){
+        if(p==='granted')return true;
+        return h.requestPermission(o).then(function(p2){return p2==='granted';});
+      });
+    }
+    function linkFolder(){
+      window.showDirectoryPicker({id:cfg.appKey+'-backups',mode:'readwrite'}).then(function(h){
+        folderHandle=h;listing=null;
+        return idbSet('folder',h).catch(function(){}).then(function(){done('ok','Linked folder “'+h.name+'”. Backups will be saved there.');});
+      }).catch(function(e){fail(e,'Couldn’t link that folder.');});
+    }
+    function unlinkFolder(){
+      folderHandle=null;if(listing&&listing.source==='folder')listing=null;
+      idbDel('folder').catch(function(){});
+      done('ok','Folder unlinked. Files already in it are untouched.');
+    }
+    function backupToFolder(){
+      if(!folderHandle)return Promise.reject(new Error('No folder linked.'));
+      var name=fileName(),json=cfg.getJSON();
+      return ensurePerm(folderHandle).then(function(ok){
+        if(!ok)throw new Error('Permission to write to “'+folderHandle.name+'” was not granted.');
+        return folderHandle.getFileHandle(name,{create:true});
+      }).then(function(fh){return fh.createWritable();})
+        .then(function(w){return w.write(json).then(function(){return w.close();});})
+        .then(function(){return name;});
+    }
+    function listFolder(){
+      setBusy('Reading “'+folderHandle.name+'”…');
+      ensurePerm(folderHandle).then(function(ok){
+        if(!ok)throw new Error('Permission to read “'+folderHandle.name+'” was not granted.');
+        var out=[],it=folderHandle.values();
+        function step(){
+          return it.next().then(function(r){
+            if(r.done)return;
+            var h=r.value;
+            if(h.kind==='file'&&/\.json$/i.test(h.name)){
+              return h.getFile().then(function(f){
+                out.push({id:'f:'+h.name,name:h.name,time:f.lastModified,size:f.size,getText:function(){return h.getFile().then(function(ff){return ff.text();});}});
+              }).then(step);
+            }
+            return step();
+          });
+        }
+        return step().then(function(){return out;});
+      }).then(function(items){
+        items.sort(function(a,b){return b.time-a.time;});
+        listing={source:'folder',title:'JSON files in “'+folderHandle.name+'”',items:items.slice(0,30)};
+        busy='';notice=null;render();
+      }).catch(function(e){fail(e,'Couldn’t read the folder.');});
+    }
+
+    /* ── Google Drive ── */
+    function loadGIS(){
+      if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
+      if(gisPromise)return gisPromise;
+      gisPromise=new Promise(function(res,rej){
+        var s=document.createElement('script');
+        s.src='https://accounts.google.com/gsi/client';s.async=true;
+        s.onload=function(){res();};
+        s.onerror=function(){gisPromise=null;rej(new Error('Couldn’t load Google sign-in. Check your internet connection.'));};
+        document.head.appendChild(s);
+      });
+      return gisPromise;
+    }
+    function getToken(forcePrompt){
+      if(!forcePrompt&&accessToken&&Date.now()<tokenExp-60000)return Promise.resolve(accessToken);
+      return loadGIS().then(function(){
+        return new Promise(function(res,rej){
+          var client=google.accounts.oauth2.initTokenClient({
+            client_id:st.driveClientId,
+            scope:DRIVE_SCOPE,
+            callback:function(r){
+              if(r.error){rej(new Error(r.error_description||r.error));return;}
+              accessToken=r.access_token;tokenExp=Date.now()+(r.expires_in||3600)*1000;
+              if(!st.driveConnected){st.driveConnected=true;saveSt();}
+              res(accessToken);
+            },
+            error_callback:function(e){
+              var m=(e&&e.type==='popup_closed')?'The Google sign-in window was closed.':
+                    (e&&e.type==='popup_failed_to_open')?'Your browser blocked the Google sign-in pop-up. Allow pop-ups for this page and try again.':
+                    ((e&&(e.message||e.type))||'Google sign-in didn’t finish.');
+              rej(new Error(m));
+            }
+          });
+          client.requestAccessToken({prompt:st.driveConnected&&!forcePrompt?'':'consent'});
+        });
+      });
+    }
+    function gfetch(url,opts,retried){
+      opts=opts||{};
+      return getToken().then(function(tok){
+        var o=Object.assign({},opts);o.headers=Object.assign({Authorization:'Bearer '+tok},opts.headers||{});
+        return fetch(url,o);
+      }).then(function(r){
+        if(r.status===401&&!retried){accessToken=null;return gfetch(url,opts,true);}
+        if(!r.ok){
+          return r.text().then(function(txt){
+            var m='';try{m=JSON.parse(txt).error.message;}catch(e){}
+            throw new Error('Google Drive said: '+(m||('error '+r.status)));
+          });
+        }
+        return r;
+      });
+    }
+    function driveFolderId(){
+      var q="name='"+cfg.driveFolderName.replace(/'/g,"\\'")+"' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      return gfetch(DRIVE_API+'/files?spaces=drive&fields=files(id,name)&q='+encodeURIComponent(q)).then(function(r){return r.json();}).then(function(j){
+        if(j.files&&j.files.length)return j.files[0].id;
+        return gfetch(DRIVE_API+'/files?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({name:cfg.driveFolderName,mimeType:'application/vnd.google-apps.folder'})})
+          .then(function(r){return r.json();}).then(function(f){return f.id;});
+      });
+    }
+    function backupToDrive(){
+      var name=fileName(),json=cfg.getJSON();
+      return driveFolderId().then(function(folderId){
+        var meta={name:name,parents:[folderId],mimeType:'application/json'};
+        var blob=new Blob([json],{type:'application/json'});
+        if(blob.size<4500000){
+          var b='blk'+Math.random().toString(36).slice(2);
+          var body=new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n',blob,'\r\n--'+b+'--'],{type:'multipart/related; boundary='+b});
+          return gfetch(DRIVE_UPLOAD+'?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:body});
+        }
+        // Large backups (lots of images) go through a resumable upload session.
+        return gfetch(DRIVE_UPLOAD+'?uploadType=resumable&fields=id',{method:'POST',
+          headers:{'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':'application/json'},body:JSON.stringify(meta)})
+          .then(function(r){
+            var loc=r.headers.get('Location');
+            if(!loc)throw new Error('Google Drive didn’t return an upload address for this large backup.');
+            return fetch(loc,{method:'PUT',headers:{'Content-Type':'application/json'},body:blob});
+          }).then(function(r){if(!r.ok)throw new Error('Google Drive upload failed (error '+r.status+').');});
+      }).then(function(){return name;});
+    }
+    function listDrive(){
+      setBusy('Looking in Google Drive…');
+      driveFolderId().then(function(fid){
+        var q="'"+fid+"' in parents and trashed=false";
+        return gfetch(DRIVE_API+'/files?pageSize=30&orderBy=modifiedTime%20desc&fields=files(id,name,modifiedTime,size)&q='+encodeURIComponent(q));
+      }).then(function(r){return r.json();}).then(function(j){
+        var items=(j.files||[]).map(function(f){
+          return {id:'d:'+f.id,name:f.name,time:Date.parse(f.modifiedTime),size:f.size,
+            getText:function(){return gfetch(DRIVE_API+'/files/'+encodeURIComponent(f.id)+'?alt=media').then(function(r){return r.text();});}};
+        });
+        listing={source:'drive',title:'Backups in Drive folder “'+cfg.driveFolderName+'”',items:items};
+        busy='';notice=null;render();
+      }).catch(function(e){fail(e,'Couldn’t list Drive backups.');});
+    }
+    function disconnectDrive(){
+      try{if(accessToken&&window.google&&google.accounts&&google.accounts.oauth2)google.accounts.oauth2.revoke(accessToken,function(){});}catch(e){}
+      accessToken=null;tokenExp=0;st.driveConnected=false;saveSt();
+      if(listing&&listing.source==='drive')listing=null;
+      done('ok','Disconnected from Google Drive. Your backups stay in Drive.');
+    }
+
+    /* ── restore ── */
+    function stageOrRestore(item,fromWhere){
+      if(cfg.restoreMode==='replace'){
+        staged={item:item,from:fromWhere};armedId=null;notice=null;busy='';render();
+        var el=panel.querySelector('.blk-stage');if(el&&el.scrollIntoView)el.scrollIntoView({block:'nearest',behavior:'smooth'});
+        return;
+      }
+      runRestore(item);
+    }
+    function runRestore(item){
+      setBusy('Restoring '+item.label+'…');
+      Promise.resolve().then(function(){return item.getText();}).then(function(text){
+        return cfg.restore(text);
+      }).then(function(msg){
+        staged=null;armedId=null;
+        done('ok',msg||('Restored from '+item.label+'.'));
+      }).catch(function(e){
+        staged=null;armedId=null;
+        fail(e,'Restore didn’t happen — nothing was changed.');
+      });
+    }
+
+    /* ── actions ── */
+    function backupAll(){
+      var jobs=[];
+      if(folderHandle)jobs.push(backupToFolder().then(function(){return 'folder “'+folderHandle.name+'”';}));
+      if(linkedCount()>(folderHandle?1:0))jobs.push(backupToDrive().then(function(){return 'Google Drive';}));
+      setBusy('Backing up to '+jobs.length+' destination'+(jobs.length>1?'s':'')+'…');
+      Promise.all(jobs.map(function(p){return p.then(function(w){return {ok:true,w:w};},function(e){return {ok:false,e:e};});})).then(function(rs){
+        var good=rs.filter(function(r){return r.ok;}).map(function(r){return r.w;});
+        var bad=rs.filter(function(r){return !r.ok;});
+        if(good.length)recordBackup(good.join(' and '));
+        if(!bad.length)done('ok','Backed up to '+good.join(' and ')+'.');
+        else done('err',(good.length?'Backed up to '+good.join(' and ')+', but ':'')+'one destination failed: '+(bad[0].e&&bad[0].e.message||bad[0].e));
+      });
+    }
+
+    function onClick(e){
+      var b=e.target.closest('[data-a]');if(!b||b.disabled)return;
+      var a=b.getAttribute('data-a');
+      if(a!=='arm'&&a!=='confirm')armedId=null;
+      switch(a){
+        case 'close':close();break;
+        case 'all':backupAll();break;
+        case 'share':saveViaShareOrDownload();break;
+        case 'openfile':fileInput.click();break;
+        case 'link':linkFolder();break;
+        case 'unlink':unlinkFolder();break;
+        case 'folder-up':
+          setBusy('Saving to “'+folderHandle.name+'”…');
+          backupToFolder().then(function(n){recordBackup('folder “'+folderHandle.name+'”');done('ok','Saved '+n+' to “'+folderHandle.name+'”.');}).catch(function(e){fail(e,'Backup to folder failed.');});
+          break;
+        case 'folder-list':listFolder();break;
+        case 'drive-save-id':{
+          var v=(panel.querySelector('#'+cfg.appKey+'-blk-cid').value||'').trim();
+          if(!/\.apps\.googleusercontent\.com$/.test(v)){done('err','That doesn’t look like an OAuth client ID. It ends in “.apps.googleusercontent.com”.');break;}
+          st.driveClientId=v;st.driveConnected=false;accessToken=null;saveSt();loadGIS().catch(function(){});
+          done('ok','Client ID saved. Tap Connect to sign in to Google.');
+          break;
+        }
+        case 'drive-forget-id':
+          disconnectDrive();st.driveClientId='';saveSt();done('ok','Client ID removed.');break;
+        case 'drive-connect':
+          setBusy('Waiting for Google sign-in…');
+          getToken(true).then(function(){return driveFolderId();}).then(function(){done('ok','Connected to Google Drive. Backups go to the folder “'+cfg.driveFolderName+'”.');}).catch(function(e){fail(e,'Couldn’t connect.');});
+          break;
+        case 'drive-up':
+          setBusy('Uploading to Google Drive…');
+          backupToDrive().then(function(n){recordBackup('Google Drive');done('ok','Uploaded '+n+' to Drive.');}).catch(function(e){fail(e,'Upload failed.');});
+          break;
+        case 'drive-list':listDrive();break;
+        case 'drive-disconnect':disconnectDrive();break;
+        case 'pick':{
+          var id=b.getAttribute('data-id');
+          var it=listing&&listing.items.filter(function(x){return x.id===id;})[0];
+          if(it)stageOrRestore({id:it.id,label:it.name,getText:it.getText},listing.source==='drive'?'Google Drive':'your folder');
+          break;
+        }
+        case 'hide-list':listing=null;render();break;
+        case 'cancel-stage':staged=null;armedId=null;render();break;
+        case 'arm':armedId='stage';render();break;
+        case 'confirm':if(staged)runRestore(staged.item);break;
+      }
+    }
+
+    /* ── render ── */
+    function btn(a,label,cls,dis,extra){return '<button type="button" class="blk-btn '+(cls||'')+'" data-a="'+a+'"'+(dis?' disabled':'')+(extra||'')+'>'+label+'</button>';}
+
+    function render(){
+      var dis=!!busy, h='';
+      var lb=st.lastBackup;
+      h+='<div class="blk-head"><h2>Linked backups</h2><button type="button" class="blk-x" data-a="close" aria-label="Close">×</button></div>';
+      h+='<p class="blk-status">'+(lb?'Last backup '+esc(ago(lb.ts))+' to '+esc(lb.where)+'.':'No backups made from here yet.')+
+         ' Your regular Export and Import still work as before.</p>';
+
+      if(busy)h+='<div class="blk-note busy" role="status">'+esc(busy)+'</div>';
+      else if(notice)h+='<div class="blk-note '+notice.kind+'" role="status">'+esc(notice.text)+'</div>';
+
+      var n=linkedCount();
+      if(n>0)h+=btn('all',n>1?'Back up to all linked ('+n+')':'Back up now','pri blk-all',dis);
+
+      if(staged){
+        h+='<div class="blk-note warn blk-stage"><b>Restore “'+esc(staged.item.label)+'” from '+esc(staged.from)+'?</b><br>'+esc(cfg.restoreWarning)+
+           '<div class="blk-row" style="margin-top:10px">'+
+           (armedId==='stage'?btn('confirm','Tap again to restore','armed',dis):btn('arm','Restore this backup','danger',dis))+
+           btn('cancel-stage','Cancel','quiet',dis)+'</div></div>';
+      }
+
+      // 1 — share sheet / file
+      h+='<div class="blk-sec"><h3><span class="blk-dot on"></span>Share sheet or file</h3>'+
+         '<p class="blk-p">Works on any device. On a phone, <b>Send backup file</b> opens your share sheet, where you can pick Google Drive, Files, or another app. On a computer it saves a file. <b>Open backup file</b> restores from any file you can browse to.</p>'+
+         '<div class="blk-row">'+btn('share','Send backup file','pri',dis)+btn('openfile','Open backup file','',dis)+'</div></div>';
+
+      // 2 — linked folder
+      h+='<div class="blk-sec"><h3><span class="blk-dot'+(folderHandle?' on':'')+'"></span>Linked folder</h3>';
+      if(!folderSupported){
+        h+='<p class="blk-p">This browser can’t link a folder. Folder linking works in Chrome or Edge on a computer. Use <b>Send backup file</b> above instead.</p>';
+      } else if(!folderHandle){
+        h+='<p class="blk-p">Pick a folder once, such as a Google Drive, Dropbox, or OneDrive folder synced to your computer. After that, each backup is one tap.</p>'+
+           '<div class="blk-row">'+btn('link','Choose folder','pri',dis)+'</div>';
+      } else {
+        h+='<p class="blk-p">Saving to <b>'+esc(folderHandle.name)+'</b>. Each backup is a new dated file. Your browser may ask once per visit to allow access.</p>'+
+           '<div class="blk-row">'+btn('folder-up','Back up to folder','pri',dis)+btn('folder-list','Restore from folder','',dis)+btn('link','Change folder','quiet',dis)+btn('unlink','Unlink','quiet',dis)+'</div>';
+      }
+      h+='</div>';
+
+      // 3 — Google Drive
+      var local=isLocalFile();
+      h+='<div class="blk-sec"><h3><span class="blk-dot'+(st.driveConnected&&driveReady()&&!local?' on':'')+'"></span>Google Drive</h3>';
+      if(local){
+        h+='<p class="blk-p">Google doesn’t allow sign-in from a page opened as a file on your device, which is how this page is open right now. To back up to Drive today, use <b>Send backup file</b> above and pick Drive. Or, on a computer, link your synced Google Drive folder. Direct Drive backup turns on when this page is opened from a web address. See the setup steps below.</p>';
+      } else if(!driveReady()){
+        h+='<p class="blk-p">One-time setup: paste a Google OAuth client ID, then sign in. Backups go to a folder named <b>'+esc(cfg.driveFolderName)+'</b>. This app can only see the files it creates there.</p>'+
+           '<input class="blk-inp" id="'+cfg.appKey+'-blk-cid" placeholder="1234567890-abc…apps.googleusercontent.com" autocomplete="off" spellcheck="false">'+
+           '<div class="blk-row">'+btn('drive-save-id','Save client ID','pri',dis)+'</div>';
+      } else if(!st.driveConnected){
+        h+='<p class="blk-p">Client ID saved. Connect to sign in with Google.</p>'+
+           '<div class="blk-row">'+btn('drive-connect','Connect Google Drive','pri',dis)+btn('drive-forget-id','Remove client ID','quiet',dis)+'</div>';
+      } else {
+        h+='<p class="blk-p">Connected. Backups go to <b>'+esc(cfg.driveFolderName)+'</b> in your Drive. Google may ask you to confirm sign-in again after an hour.</p>'+
+           '<div class="blk-row">'+btn('drive-up','Back up to Drive','pri',dis)+btn('drive-list','Restore from Drive','',dis)+btn('drive-disconnect','Disconnect','quiet',dis)+'</div>';
+      }
+      h+='<details><summary>How to set up direct Drive backup</summary><ol>'+
+         '<li>Open this page from a web address instead of a file, for example by hosting it free on GitHub Pages or Netlify Drop.</li>'+
+         '<li>At <code>console.cloud.google.com</code>, create a project and enable the <b>Google Drive API</b>.</li>'+
+         '<li>Under <b>OAuth consent screen</b>, choose External and add your own Google account as a test user.</li>'+
+         '<li>Under <b>Credentials</b>, create an <b>OAuth client ID</b> of type Web application. Add this page’s address to Authorized JavaScript origins'+(local?'.':': <code>'+esc(location.origin)+'</code>')+'</li>'+
+         '<li>Paste the client ID here and tap Connect.</li></ol></details>';
+      h+='</div>';
+
+      // restore picker
+      if(listing){
+        h+='<div class="blk-list"><div class="blk-list-head"><span>'+esc(listing.title)+'</span>'+btn('hide-list','Hide','quiet',false)+'</div>';
+        if(!listing.items.length)h+='<div class="blk-li"><span class="blk-li-meta">No backup files found here yet.</span></div>';
+        listing.items.forEach(function(it){
+          h+='<div class="blk-li"><div><div class="blk-li-name">'+esc(it.name)+'</div><div class="blk-li-meta">'+esc(fmtDate(it.time))+(it.size?' · '+esc(fmtSize(it.size)):'')+'</div></div>'+
+             btn('pick','Restore','',dis,' data-id="'+esc(it.id)+'"')+'</div>';
+        });
+        h+='</div>';
+      }
+
+      h+='<p class="blk-foot" style="margin-top:12px">'+esc(cfg.footNote||'')+'</p>';
+      panel.innerHTML=h;
+    }
+
+    function open(){
+      notice=null;staged=null;armedId=null;
+      if(driveReady()&&!isLocalFile())loadGIS().catch(function(){});   // preload so sign-in pop-ups aren't blocked
+      render();ov.classList.add('on');
+      var x=panel.querySelector('.blk-x');if(x)x.focus();
+    }
+    function close(){ov.classList.remove('on');staged=null;armedId=null;}
+
+    return {open:open,close:close};
+  }
+
+  // Standalone helper: send any text as a file via the share sheet, or download it.
+  function shareOrDownload(text,name,mime){
+    mime=mime||'application/json';
+    var file=null;try{file=new File([text],name,{type:mime});}catch(e){}
+    function dl(){
+      var url=URL.createObjectURL(new Blob([text],{type:mime}));
+      var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(url);},4000);
+      return 'downloaded';
+    }
+    if(file&&navigator.canShare&&navigator.share){
+      var can=false;try{can=navigator.canShare({files:[file]});}catch(e){}
+      if(can)return navigator.share({files:[file],title:name}).then(function(){return 'shared';},function(e){
+        if(e&&e.name==='AbortError')return 'cancelled';return dl();});
+    }
+    return Promise.resolve(dl());
+  }
+  window.BackupLinks={init:init,shareOrDownload:shareOrDownload};
+})();
+
+</script>
+<script>
+window.PRESET = {
+  appKey:'gospel-study', storageKey:'gospel_study_v1', title:'Line upon Line', subtitle:'Gospel study & apologetics', shortName:'Gospel Study',
+  scripture:true, archiveExport:true, timeline:false, multiProject:false,
+  groups:['Gospel Study','Apologetics'],
+  quickAdd:[{group:'Apologetics',label:'Add a tradition',newName:'New tradition',icon:'✦',defaultType:'t-apol',
+    description:'Their teachings as they’d explain them, the questions they raise, your responses, and common ground.'}],
+  defaultType:'t-doctrine',
+  firstProject:{name:'My study',template:'gospel'},
+  templates:{gospel:{label:'Gospel study',description:'',
+    sections:[
+      {id:'s-doctrine',name:'Doctrines & Principles',group:'Gospel Study',icon:'✦',defaultType:'t-doctrine',description:'Core doctrines and principles of the gospel, studied in your own words.'},
+      {id:'s-scripture',name:'Scripture Study',group:'Gospel Study',icon:'📖',defaultType:'t-scripture',description:'Notes on passages and chapters as you read.'},
+      {id:'s-talks',name:'Talks & Teachings',group:'Gospel Study',icon:'🎙',defaultType:'t-talk',description:'Conference talks, devotionals and other teachings.'},
+      {id:'s-questions',name:'Questions & Ponderings',group:'Gospel Study',icon:'❓',defaultType:'t-question',description:'Questions you’re studying out, and what you’ve found so far.'},
+      {id:'s-evangelical',name:'Evangelical Protestant',group:'Apologetics',icon:'✝',defaultType:'t-apol',description:'Non-denominational, Baptist, Pentecostal and other evangelical traditions.'},
+      {id:'s-catholic',name:'Catholic',group:'Apologetics',icon:'✝',defaultType:'t-apol',description:'The Roman Catholic Church.'},
+      {id:'s-mainline',name:'Mainline Protestant',group:'Apologetics',icon:'✝',defaultType:'t-apol',description:'Methodist, Lutheran, Presbyterian, Episcopal and similar churches.'},
+      {id:'s-orthodox',name:'Eastern Orthodox',group:'Apologetics',icon:'☦',defaultType:'t-apol',description:'Greek, Russian, Antiochian and other Orthodox churches.'},
+      {id:'s-jw',name:'Jehovah’s Witnesses',group:'Apologetics',icon:'✦',defaultType:'t-apol',description:''},
+      {id:'s-judaism',name:'Judaism',group:'Apologetics',icon:'✡',defaultType:'t-apol',description:'Orthodox, Conservative, Reform and other branches.'},
+      {id:'s-islam',name:'Islam',group:'Apologetics',icon:'☪',defaultType:'t-apol',description:''},
+      {id:'s-secular',name:'Secular & Atheist',group:'Apologetics',icon:'◯',defaultType:'t-apol',description:'Atheist, agnostic and secular humanist viewpoints.'},
+      {id:'s-general',name:'Common Questions',group:'Apologetics',icon:'?',defaultType:'t-apol',description:'Questions that come up across many traditions.'}
+    ],
+    types:[
+      {id:'t-doctrine',name:'Doctrine',icon:'✦',color:'#d4b06a',fields:[
+        {id:'summary',label:'Summary in my own words',kind:'longtext'},
+        {id:'scriptures',label:'Key scriptures',kind:'refs'},
+        {id:'teachings',label:'Prophetic teachings & sources',kind:'longtext'},
+        {id:'insights',label:'My insights',kind:'longtext'},
+        {id:'application',label:'How I can live it',kind:'longtext'},
+        {id:'questions',label:'Questions to keep studying',kind:'longtext'}]},
+      {id:'t-scripture',name:'Scripture study',icon:'📖',color:'#7fa6d9',fields:[
+        {id:'passages',label:'Passage(s)',kind:'refs'},
+        {id:'context',label:'Context',kind:'longtext'},
+        {id:'notes',label:'What I noticed',kind:'longtext'},
+        {id:'cross',label:'Cross-references',kind:'refs'},
+        {id:'application',label:'Application',kind:'longtext'}]},
+      {id:'t-talk',name:'Talk or teaching',icon:'🎙',color:'#9cc59a',fields:[
+        {id:'speaker',label:'Speaker',kind:'text'},
+        {id:'source',label:'Where & when',kind:'text',placeholder:'e.g. April 2025 General Conference'},
+        {id:'url',label:'Link',kind:'url'},
+        {id:'points',label:'Key points',kind:'longtext'},
+        {id:'scriptures',label:'Scriptures cited',kind:'refs'},
+        {id:'notes',label:'My notes',kind:'longtext'}]},
+      {id:'t-question',name:'Question',icon:'❓',color:'#c39bd3',fields:[
+        {id:'question',label:'The question',kind:'longtext'},
+        {id:'found',label:'What I’ve found',kind:'longtext'},
+        {id:'scriptures',label:'Scriptures',kind:'refs'},
+        {id:'sources',label:'Sources',kind:'longtext'},
+        {id:'open',label:'Still pondering',kind:'longtext'}]},
+      {id:'t-apol',name:'Apologetics topic',icon:'🛡',color:'#e08f6b',fields:[
+        {id:'position',label:'Their position, as they’d state it',kind:'longtext'},
+        {id:'objections',label:'Objections they raise',kind:'longtext'},
+        {id:'response',label:'My response',kind:'longtext'},
+        {id:'scriptures',label:'Scriptures',kind:'refs'},
+        {id:'sources',label:'Sources & references',kind:'longtext'},
+        {id:'common',label:'Common ground',kind:'longtext'}]},
+      {id:'t-note',name:'Note',icon:'📝',color:'#9aa3b5',fields:[{id:'body',label:'Notes',kind:'longtext'}]}
+    ],
+    seed:[{typeId:'t-doctrine',sectionId:'s-doctrine',title:'Faith in Jesus Christ',tags:['sample','first principles'],fields:{
+      summary:'Faith is the first principle of the gospel. It is trust in Jesus Christ that leads me to act.\n\n*Sample entry: edit it or delete it.*',
+      scriptures:'Hebrews 11:1\nAlma 32:21\nEther 12:6\nMoroni 7:33\nArticles of Faith 1:4'}}]
+  }},
+  backupTheme:{panel:'#171d29',text:'#ece6d8',dim:'#a3abbb',line:'rgba(214,190,140,.2)',accent:'#d4b06a',accentBg:'rgba(212,176,106,.14)',accentLine:'rgba(212,176,106,.45)',btnBg:'#1d2433',
+    ok:'#9cc59a',okBg:'rgba(156,197,154,.14)',danger:'#e08f6b',dangerBg:'rgba(224,143,107,.14)',head:"'EB Garamond',Georgia,serif",body:"'Source Sans 3',system-ui,sans-serif",mono:"ui-monospace,Menlo,Consolas,monospace",
+    btnFont:"'Source Sans 3',system-ui,sans-serif",btnSize:'.85rem',btnCase:'none',z:400}
+};
+
+</script>
+<script>
+/* ══ ENGINE ══════════════════════════════════════════════════════════════════
+   One engine, configured by PRESET. Data shape (saved in localStorage):
+   { version, app, activeProject, settings:{title,subtitle,accent},
+     projects:[{ id, name, sections:[{id,name,group,description,defaultType}],
+                 types:[{id,name,icon,color,fields:[{id,label,kind,options}]}],
+                 entries:[{id,typeId,sectionId,title,fields:{},tags:[],links:[{to,label}],createdAt,updatedAt}],
+                 trash:[...entries with deletedAt], meta:{lastArchiveExportAt} }] }
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var P = window.PRESET;
+var KEY = P.storageKey;
+var KINDS = [
+  ['text','Short text'],['longtext','Long text'],['list','List'],
+  ['date','Date / year'],['when','Custom date'],['select','Choice'],
+  ['url','Web link'],['positions','Positions']
+];
+if(P.scripture) KINDS.splice(3,0,['refs','Scriptures']);
+
+var root, proj;
+var st = {view:'list', section:null, type:null, tag:null, entry:null, sort:'updated', tab:'general', openType:null};
+var draft = null;          // entry being edited
+var $ = function(id){return document.getElementById(id);};
+
+/* ── utilities ── */
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function now(){return new Date().toISOString();}
+function fmtDate(iso){if(!iso)return '';var d=new Date(iso);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('on');},2600);}
+function slug(s){return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'export';}
+function armOrRun(btn,fn){
+  if(btn.dataset.armed){fn();return;}
+  btn.dataset.armed='1';btn._old=btn.innerHTML;btn.textContent='Tap again to confirm';btn.classList.add('armed');
+  setTimeout(function(){if(btn.isConnected&&btn.dataset.armed){delete btn.dataset.armed;btn.innerHTML=btn._old;btn.classList.remove('armed');}},4000);
+}
+
+/* ── storage ── */
+function makeProject(name,tplKey){
+  var t=P.templates[tplKey]||P.templates[Object.keys(P.templates)[0]];
+  var p={id:uid(),name:name,template:tplKey,sections:clone(t.sections||[]),types:clone(t.types),entries:[],trash:[],meta:{}};
+  if(t.seed)t.seed.forEach(function(s){
+    var e=clone(s);e.id=e.id||uid();e.createdAt=e.updatedAt=now();e.tags=e.tags||[];e.links=e.links||[];e.fields=e.fields||{};
+    p.entries.push(e);
+  });
+  return p;
+}
+function freshRoot(){
+  var p=makeProject(P.firstProject.name,P.firstProject.template);
+  return {version:1,app:P.appKey,activeProject:p.id,settings:{title:P.title,subtitle:P.subtitle,accent:null},projects:[p]};
+}
+function isRoot(r){return r&&typeof r==='object'&&Array.isArray(r.projects)&&r.projects.length>0;}
+function load(){
+  var r=null;try{r=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+  root=isRoot(r)?r:freshRoot();
+  root.settings=root.settings||{title:P.title,subtitle:P.subtitle};
+  root.projects.forEach(function(p){p.sections=p.sections||[];p.types=p.types||[];p.entries=p.entries||[];p.trash=p.trash||[];p.meta=p.meta||{};});
+  proj=root.projects.filter(function(p){return p.id===root.activeProject;})[0]||root.projects[0];
+  root.activeProject=proj.id;
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(root));return true;}
+  catch(e){toast('Storage is full — back up and remove some entries.');return false;}
+}
+
+/* ── lookups ── */
+function typeOf(e){return proj.types.filter(function(t){return t.id===e.typeId;})[0]||{id:'?',name:'Entry',icon:'•',color:'var(--dim)',fields:[]};}
+function typeById(id){return proj.types.filter(function(t){return t.id===id;})[0];}
+function secById(id){return proj.sections.filter(function(s){return s.id===id;})[0];}
+function entryById(id){return proj.entries.filter(function(e){return e.id===id;})[0];}
+function entryByTitle(t){t=String(t).trim().toLowerCase();return proj.entries.filter(function(e){return e.title.trim().toLowerCase()===t;})[0];}
+function groups(){
+  var order=(P.groups||[]).slice();
+  proj.sections.forEach(function(s){var g=s.group||'';if(order.indexOf(g)<0)order.push(g);});
+  return order.filter(function(g){return proj.sections.some(function(s){return (s.group||'')===g;});});
+}
+function fieldText(e){
+  var out=[];typeOf(e).fields.forEach(function(f){var v=e.fields[f.id];if(v==null)return;
+    if(f.kind==='positions'&&Array.isArray(v))v.forEach(function(p){out.push(p.name,p.statement,p.evidence);});
+    else if(f.kind==='when'&&v&&typeof v==='object')out.push(v.label);
+    else out.push(String(v));});
+  return out.join(' ');
+}
+function snippet(e){
+  var t=typeOf(e);
+  var order=t.fields.filter(function(f){return f.kind==='longtext';}).concat(t.fields.filter(function(f){return f.kind==='text';}));
+  for(var i=0;i<order.length;i++){var f=order[i],v=e.fields[f.id];
+    if(v&&String(v).trim())return String(v).replace(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g,function(m,a,b,c){return c||a;}).replace(/\*\*?/g,'').slice(0,180);}
+  return '';
+}
+
+/* ── dates & timeline ── */
+var MONTHS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+function parseWhen(v,kind){
+  if(v==null||v==='')return null;
+  if(kind==='when'){if(typeof v!=='object')return null;var o=parseFloat(v.order);return isNaN(o)?null:{key:o,label:v.label||String(v.order)};}
+  var s=String(v).trim(),iso=s.match(/^(-?\d{1,4})-(\d{1,2})(?:-(\d{1,2}))?/);
+  if(iso)return {key:+iso[1]+(+iso[2]-1)/12+((+iso[3]||1)-1)/365,label:s};
+  var bc=s.match(/(\d{1,4})\s*(BC|BCE|B\.C\.)/i),yr=s.match(/\b(\d{3,4})\b/),any=s.match(/\d{1,4}/);
+  var y=bc?-(+bc[1]):yr?+yr[1]:any?+any[0]:null;if(y==null)return null;
+  var mo=-1;MONTHS.forEach(function(n,i){if(new RegExp('\\b'+n,'i').test(s))mo=i;});
+  var d=s.match(/\b(\d{1,2})(?:st|nd|rd|th)?,/);
+  return {key:y+(mo>=0?mo/12:0)+(d?(+d[1]-1)/365:0),label:s};
+}
+function whenOf(e){
+  var fs=typeOf(e).fields;
+  for(var i=0;i<fs.length;i++)if(fs[i].kind==='date'||fs[i].kind==='when'){var w=parseWhen(e.fields[fs[i].id],fs[i].kind);if(w)return w;}
+  return null;
+}
+
+/* ── scripture references (Latter-day Saint standard works) ── */
+var WORKS=[['ot','Old Testament'],['nt','New Testament'],['bofm','Book of Mormon'],['dc-testament','Doctrine and Covenants'],['pgp','Pearl of Great Price']];
+var BOOKS=[
+ ['ot','gen','Genesis','gen'],['ot','ex','Exodus','ex exo exod'],['ot','lev','Leviticus','lev'],['ot','num','Numbers','num'],['ot','deut','Deuteronomy','deut deu'],
+ ['ot','josh','Joshua','josh'],['ot','judg','Judges','judg'],['ot','ruth','Ruth',''],['ot','1-sam','1 Samuel','1 sam'],['ot','2-sam','2 Samuel','2 sam'],
+ ['ot','1-kgs','1 Kings','1 kgs 1 kin'],['ot','2-kgs','2 Kings','2 kgs 2 kin'],['ot','1-chr','1 Chronicles','1 chr 1 chron'],['ot','2-chr','2 Chronicles','2 chr 2 chron'],
+ ['ot','ezra','Ezra',''],['ot','neh','Nehemiah','neh'],['ot','esth','Esther','esth'],['ot','job','Job',''],['ot','ps','Psalms','ps psa psalm'],['ot','prov','Proverbs','prov'],
+ ['ot','eccl','Ecclesiastes','eccl eccles'],['ot','song','Song of Solomon','song song of songs'],['ot','isa','Isaiah','isa'],['ot','jer','Jeremiah','jer'],['ot','lam','Lamentations','lam'],
+ ['ot','ezek','Ezekiel','ezek'],['ot','dan','Daniel','dan'],['ot','hosea','Hosea','hos'],['ot','joel','Joel',''],['ot','amos','Amos',''],['ot','obad','Obadiah','obad'],
+ ['ot','jonah','Jonah',''],['ot','micah','Micah','mic'],['ot','nahum','Nahum','nah'],['ot','hab','Habakkuk','hab'],['ot','zeph','Zephaniah','zeph'],['ot','hag','Haggai','hag'],
+ ['ot','zech','Zechariah','zech'],['ot','mal','Malachi','mal'],
+ ['nt','matt','Matthew','matt mt'],['nt','mark','Mark','mk'],['nt','luke','Luke','lk'],['nt','john','John','jn'],['nt','acts','Acts',''],['nt','rom','Romans','rom'],
+ ['nt','1-cor','1 Corinthians','1 cor'],['nt','2-cor','2 Corinthians','2 cor'],['nt','gal','Galatians','gal'],['nt','eph','Ephesians','eph'],['nt','philip','Philippians','phil philip'],
+ ['nt','col','Colossians','col'],['nt','1-thes','1 Thessalonians','1 thes 1 thess'],['nt','2-thes','2 Thessalonians','2 thes 2 thess'],['nt','1-tim','1 Timothy','1 tim'],['nt','2-tim','2 Timothy','2 tim'],
+ ['nt','titus','Titus',''],['nt','philem','Philemon','philem'],['nt','heb','Hebrews','heb'],['nt','james','James','jas'],['nt','1-pet','1 Peter','1 pet'],['nt','2-pet','2 Peter','2 pet'],
+ ['nt','1-jn','1 John','1 jn'],['nt','2-jn','2 John','2 jn'],['nt','3-jn','3 John','3 jn'],['nt','jude','Jude',''],['nt','rev','Revelation','rev revelations'],
+ ['bofm','1-ne','1 Nephi','1 ne'],['bofm','2-ne','2 Nephi','2 ne'],['bofm','jacob','Jacob','jac'],['bofm','enos','Enos',''],['bofm','jarom','Jarom',''],['bofm','omni','Omni',''],
+ ['bofm','w-of-m','Words of Mormon','w of m wofm'],['bofm','mosiah','Mosiah',''],['bofm','alma','Alma',''],['bofm','hel','Helaman','hel'],['bofm','3-ne','3 Nephi','3 ne'],
+ ['bofm','4-ne','4 Nephi','4 ne'],['bofm','morm','Mormon','morm'],['bofm','ether','Ether',''],['bofm','moro','Moroni','moro'],
+ ['dc-testament','dc','D&C','doctrine and covenants d&c dc d and c'],
+ ['pgp','moses','Moses',''],['pgp','abr','Abraham','abr'],['pgp','js-m','Joseph Smith—Matthew','js-m jsm joseph smith-matthew'],
+ ['pgp','js-h','Joseph Smith—History','js-h jsh joseph smith-history'],['pgp','a-of-f','Articles of Faith','a of f aof']
+];
+var BOOK_MAP={};
+BOOKS.forEach(function(b,i){
+  var names=[b[2].toLowerCase().replace(/—/g,'-')];
+  if(b[3]){
+    // aliases: split on spaces but keep multi-word groups — rebuild from known patterns
+    var parts=b[3].split(' '),acc=[];
+    for(var k=0;k<parts.length;k++){
+      var w=parts[k];
+      if(/^[1-4]$/.test(w)&&parts[k+1]){acc.push(w+' '+parts[k+1]);k++;continue;}
+      if(w==='song'&&parts[k+1]==='of'){acc.push('song of songs');k+=2;continue;}
+      if((w==='w'||w==='a')&&parts[k+1]==='of'){acc.push(w+' of '+parts[k+2]);k+=2;continue;}
+      if(w==='doctrine'){acc.push('doctrine and covenants');k+=2;continue;}
+      if(w==='d'&&parts[k+1]==='and'){acc.push('d and c');k+=2;continue;}
+      if(w==='joseph'){acc.push('joseph '+parts[k+1]);k++;continue;}
+      acc.push(w);
+    }
+    names=names.concat(acc);
+  }
+  names.forEach(function(n){BOOK_MAP[n]=i;});
+});
+function normBook(s){return s.toLowerCase().replace(/[.]/g,'').replace(/[—–]/g,'-').replace(/\s+/g,' ').replace(/^([1-4])\s*([a-z])/,'$1 $2').trim();}
+function parseRef(raw){
+  var s=String(raw).trim();if(!s)return null;
+  var m=s.match(/^(.+?)\s+(\d+)(?::\s*([\d][\d\s,\-–—]*))?\s*$/);
+  if(!m)return {raw:s};
+  var bi=BOOK_MAP[normBook(m[1])];if(bi==null)return {raw:s};
+  var b=BOOKS[bi],ch=+m[2],vs=m[3]?m[3].trim():'';
+  if(b[1]==='a-of-f'&&!vs){vs=String(ch);ch=1;}
+  var v1=vs?parseInt(vs,10):null,v2=null;
+  var r=vs.match(/^(\d+)\s*[-–—]\s*(\d+)/);if(r)v2=+r[2];
+  var url='https://www.churchofjesuschrist.org/study/scriptures/'+b[0]+'/'+b[1]+'/'+ch+'?lang=eng'+(v1?'&id=p'+v1+(v2?'-p'+v2:'')+'#p'+v1:'');
+  return {raw:s,work:b[0],bookIndex:bi,book:b[2],ch:ch,v:v1||0,label:b[2]+' '+ch+(vs?':'+vs.replace(/\s+/g,''):''),url:url};
+}
+function splitRefs(v){return String(v||'').split(/\n|;/).map(function(x){return x.trim();}).filter(Boolean);}
+
+/* ── rich text ── */
+function inline(s){
+  s=s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  s=s.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,function(m,t,l){
+    var e=entryByTitle(t.replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"'));
+    return e?'<a class="wl" data-act="open" data-id="'+e.id+'">'+(l||t)+'</a>':'<span class="broken" title="No entry with this title yet">'+(l||t)+'</span>';
+  });
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g,'$1<i>$2</i>');
+  return s;
+}
+function rich(text){
+  var lines=esc(text).split('\n'),html='',para=[],list=[];
+  function fp(){if(para.length){html+='<p>'+inline(para.join('<br>'))+'</p>';para=[];}}
+  function fl(){if(list.length){html+='<ul>'+list.map(function(l){return '<li>'+inline(l)+'</li>';}).join('')+'</ul>';list=[];}}
+  lines.forEach(function(l){
+    var m=l.match(/^\s*[-*•]\s+(.*)$/);
+    if(m){fp();list.push(m[1]);}
+    else if(!l.trim()){fp();fl();}
+    else{fl();para.push(l);}
+  });
+  fp();fl();return '<div class="rich">'+html+'</div>';
+}
+
+/* ── filtering ── */
+function filtered(){
+  var q=($('q').value||'').trim().toLowerCase();
+  var list=proj.entries.filter(function(e){
+    if(st.section==='__none'){if(e.sectionId&&secById(e.sectionId))return false;}
+    else if(st.section&&e.sectionId!==st.section)return false;
+    if(st.type&&e.typeId!==st.type)return false;
+    if(st.tag&&(e.tags||[]).indexOf(st.tag)<0)return false;
+    if(q){var hay=(e.title+' '+(e.tags||[]).join(' ')+' '+fieldText(e)).toLowerCase();
+      if(q.split(/\s+/).some(function(w){return hay.indexOf(w)<0;}))return false;}
+    return true;
+  });
+  list.sort(st.sort==='title'?function(a,b){return a.title.localeCompare(b.title);}:
+            st.sort==='created'?function(a,b){return (b.createdAt||'').localeCompare(a.createdAt||'');}:
+            function(a,b){return (b.updatedAt||'').localeCompare(a.updatedAt||'');});
+  return list;
+}
+
+/* ── sidebar ── */
+function renderSide(){
+  var h='',cnt=function(fn){return proj.entries.filter(fn).length;};
+  var isList=st.view==='list';
+  h+='<a class="'+(isList&&!st.section&&!st.type&&!st.tag?'on':'')+'" data-act="all"><span class="ic">◈</span>All entries<span class="n">'+proj.entries.length+'</span></a>';
+  if(P.timeline!==false)h+='<a class="'+(st.view==='timeline'?'on':'')+'" data-act="view" data-v="timeline"><span class="ic">⏳</span>Timeline</a>';
+  if(P.scripture)h+='<a class="'+(st.view==='scripture'?'on':'')+'" data-act="view" data-v="scripture"><span class="ic">📖</span>Scripture index</a>';
+  groups().forEach(function(g){
+    h+='<div class="side-group"><div class="side-label"><span>'+esc(g||'Sections')+'</span></div>';
+    proj.sections.filter(function(s){return (s.group||'')===g;}).forEach(function(s){
+      h+='<a class="'+(isList&&st.section===s.id?'on':'')+'" data-act="section" data-id="'+s.id+'"><span class="ic">'+esc(s.icon||'·')+'</span>'+esc(s.name)+'<span class="n">'+cnt(function(e){return e.sectionId===s.id;})+'</span></a>';
+    });
+    (P.quickAdd||[]).filter(function(q){return q.group===g;}).forEach(function(q){
+      h+='<a class="add" data-act="quick-section" data-group="'+esc(g)+'"><span class="ic">＋</span>'+esc(q.label)+'</a>';
+    });
+    h+='</div>';
+  });
+  var orphans=cnt(function(e){return !e.sectionId||!secById(e.sectionId);});
+  if(orphans&&proj.sections.length)h+='<div class="side-group"><a class="'+(st.section==='__none'?'on':'')+'" data-act="section" data-id="__none"><span class="ic">·</span>Unsorted<span class="n">'+orphans+'</span></a></div>';
+  h+='<div class="side-group"><div class="side-label"><span>Entry types</span></div>';
+  proj.types.forEach(function(t){
+    h+='<a class="'+(isList&&st.type===t.id?'on':'')+'" data-act="type" data-id="'+t.id+'"><span class="ic">'+esc(t.icon||'•')+'</span>'+esc(t.name)+'<span class="n">'+cnt(function(e){return e.typeId===t.id;})+'</span></a>';
+  });
+  h+='</div><div class="side-group">';
+  h+='<a class="'+(st.view==='trash'?'on':'')+'" data-act="view" data-v="trash"><span class="ic">🗑</span>Trash<span class="n">'+(proj.trash.length||'')+'</span></a>';
+  h+='<a class="'+(st.view==='settings'?'on':'')+'" data-act="view" data-v="settings"><span class="ic">⚙</span>Settings &amp; backups</a>';
+  h+='</div>';
+  $('side').innerHTML=h;
+}
+
+/* ── list view ── */
+function renderList(){
+  var list=filtered(),sec=st.section&&st.section!=='__none'?secById(st.section):null,typ=st.type?typeById(st.type):null;
+  var title=sec?sec.name:typ?typ.name:st.section==='__none'?'Unsorted':'All entries';
+  var desc=sec?sec.description:'';
+  var h='<div class="list-head"><h1>'+esc(title)+'</h1><div class="list-tools"><select data-act-change="sort" aria-label="Sort">'+
+    [['updated','Recently updated'],['created','Recently added'],['title','Title A–Z']].map(function(o){return '<option value="'+o[0]+'"'+(st.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
+    '</select></div></div>';
+  if(desc)h+='<p class="list-desc">'+esc(desc)+'</p>';
+  var chips='';
+  if(st.tag)chips+='<button class="chip on" data-act="tag-clear">#'+esc(st.tag)+' ✕</button>';
+  if(sec&&st.type)chips+='<button class="chip on" data-act="type-clear">'+esc(typ.icon)+' '+esc(typ.name)+' ✕</button>';
+  if(sec){ // type filter chips within a section
+    proj.types.forEach(function(t){var n=proj.entries.filter(function(e){return e.sectionId===sec.id&&e.typeId===t.id;}).length;
+      if(n&&st.type!==t.id)chips+='<button class="chip" data-act="type-in-sec" data-id="'+t.id+'">'+esc(t.icon)+' '+esc(t.name)+' · '+n+'</button>';});
+  }
+  if(chips)h+='<div class="chips">'+chips+'</div>';
+  if(!list.length){
+    var q=$('q').value.trim();
+    h+='<div class="empty"><h3>'+(q?'No matches':'Nothing here yet')+'</h3><p>'+(q?'Try a different search.':esc((sec&&sec.emptyHint)||'Add your first entry to get started.'))+'</p>'+(q?'':'<button class="btn pri" data-act="new">＋ New entry</button>')+'</div>';
+  } else {
+    h+='<div class="cards">'+list.map(card).join('')+'</div>';
+  }
+  $('main').innerHTML=h;
+}
+function card(e){
+  var t=typeOf(e),s=secById(e.sectionId),sn=snippet(e);
+  return '<button class="card" style="--c:'+esc(t.color)+'" data-act="open" data-id="'+e.id+'">'+
+    '<div class="card-type"><span>'+esc(t.icon)+'</span>'+esc(t.name)+'</div>'+
+    '<div class="card-title">'+esc(e.title||'Untitled')+'</div>'+
+    (sn?'<div class="card-snip">'+esc(sn)+'</div>':'')+
+    '<div class="card-foot"><span>'+esc(s?s.name:'')+'</span><span>'+fmtDate(e.updatedAt)+'</span></div></button>';
+}
+
+/* ── entry view ── */
+function renderValue(f,v){
+  if(v==null||v===''||(Array.isArray(v)&&!v.length))return '';
+  switch(f.kind){
+    case 'longtext':return rich(v);
+    case 'list':return '<div class="refs">'+splitRefs(v).map(function(x){return '<span class="ref plain">'+inline(esc(x))+'</span>';}).join('')+'</div>';
+    case 'refs':return '<div class="refs">'+splitRefs(v).map(function(x){var r=parseRef(x);
+      return r&&r.url?'<a class="ref" href="'+esc(r.url)+'" target="_blank" rel="noopener" title="Open in Gospel Library">'+esc(r.label)+' ↗</a>':'<span class="ref plain">'+esc(x)+'</span>';}).join('')+'</div>';
+    case 'url':return '<a href="'+esc(/^https?:/i.test(v)?v:'https://'+v)+'" target="_blank" rel="noopener">'+esc(v)+'</a>';
+    case 'when':return typeof v==='object'?esc(v.label||v.order):esc(v);
+    case 'positions':
+      if(!Array.isArray(v))return '';
+      return v.map(function(p){return '<div class="pos"><h4>'+esc(p.name||'Position')+'</h4>'+
+        (p.statement?'<div class="sub">As its supporters put it</div>'+rich(p.statement):'')+
+        (p.evidence?'<div class="sub">Evidence &amp; arguments they cite</div>'+rich(p.evidence):'')+'</div>';}).join('');
+    default:return '<div class="rich"><p>'+inline(esc(v))+'</p></div>';
+  }
+}
+function backlinks(e){
+  var out=[];
+  proj.entries.forEach(function(o){if(o.id===e.id)return;
+    var l=(o.links||[]).filter(function(x){return x.to===e.id;})[0];
+    var mention=new RegExp('\\[\\['+e.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\||\\]\\])','i').test(fieldText(o));
+    if(l||mention)out.push({e:o,label:l?l.label:'mentions'});});
+  return out;
+}
+function renderEntry(){
+  var e=entryById(st.entry);if(!e){go({view:'list'});return;}
+  var t=typeOf(e),s=secById(e.sectionId);
+  var h='<article class="entry"><div class="crumbs">'+(s?'<a data-act="section" data-id="'+s.id+'">'+esc(s.group?s.group+' · ':'')+esc(s.name)+'</a>':'<a data-act="all">All entries</a>')+'</div>';
+  h+='<span class="badge" style="--c:'+esc(t.color)+'">'+esc(t.icon)+' '+esc(t.name)+'</span>';
+  h+='<h1>'+esc(e.title||'Untitled')+'</h1>';
+  h+='<div class="entry-meta"><span>Updated '+fmtDate(e.updatedAt)+'</span><div class="entry-actions"><button class="btn sm" data-act="edit" data-id="'+e.id+'">Edit</button></div></div>';
+  t.fields.forEach(function(f){var r=renderValue(f,e.fields[f.id]);if(r)h+='<div class="fld"><div class="fld-label">'+esc(f.label)+'</div>'+r+'</div>';});
+  if((e.tags||[]).length)h+='<div class="fld"><div class="fld-label">Tags</div><div class="tags">'+e.tags.map(function(g){return '<button class="chip" data-act="tag" data-tag="'+esc(g)+'">#'+esc(g)+'</button>';}).join('')+'</div></div>';
+  var rel=(e.links||[]).map(function(l){return {e:entryById(l.to),label:l.label};}).filter(function(x){return x.e;});
+  var back=backlinks(e);
+  if(rel.length||back.length){
+    var li=function(x){var tt=typeOf(x.e);return '<div class="lnk" data-act="open" data-id="'+x.e.id+'"><span>'+esc(tt.icon)+'</span><span class="lnk-t">'+esc(x.e.title)+'</span>'+(x.label?'<span class="lnk-l">'+esc(x.label)+'</span>':'')+'</div>';};
+    h+='<div class="links-box"><div><h3>Related</h3>'+(rel.length?rel.map(li).join(''):'<span class="mini">None yet. Add them when editing.</span>')+'</div><div><h3>Linked from</h3>'+(back.length?back.map(li).join(''):'<span class="mini">Nothing links here yet.</span>')+'</div></div>';
+  }
+  h+='</article>';
+  $('main').innerHTML=h;
+}
+
+/* ── editor ── */
+function startEdit(id,preset){
+  if(id){var e=entryById(id);if(!e)return;draft=clone(e);draft._isNew=false;}
+  else{
+    var sec=preset&&preset.sectionId?secById(preset.sectionId):null;
+    var typeId=(preset&&preset.typeId)||(sec&&sec.defaultType)||(P.defaultType)||proj.types[0].id;
+    draft={id:uid(),typeId:typeId,sectionId:sec?sec.id:(proj.sections[0]?proj.sections[0].id:null),title:'',fields:{},tags:[],links:[],_isNew:true};
+  }
+  go({view:'edit'});
+}
+function fieldInput(f,v){
+  var id='f_'+f.id,ph=f.placeholder?' placeholder="'+esc(f.placeholder)+'"':'';
+  switch(f.kind){
+    case 'longtext':return '<textarea class="inp" id="'+id+'" data-f="'+f.id+'"'+ph+'>'+esc(v||'')+'</textarea>';
+    case 'list':case 'refs':return '<textarea class="inp" style="min-height:80px" id="'+id+'" data-f="'+f.id+'" placeholder="'+(f.kind==='refs'?'One per line, e.g. Alma 32:21':'One per line')+'">'+esc(v||'')+'</textarea>';
+    case 'select':return '<select class="inp" id="'+id+'" data-f="'+f.id+'"><option value=""></option>'+String(f.options||'').split(',').map(function(o){o=o.trim();return o?'<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>':'';}).join('')+'</select>';
+    case 'when':v=v&&typeof v==='object'?v:{};return '<div class="row2"><input class="inp" data-f="'+f.id+'" data-sub="label" value="'+esc(v.label||'')+'" placeholder="As shown, e.g. Third Age 3019"><input class="inp" type="number" step="any" data-f="'+f.id+'" data-sub="order" value="'+esc(v.order==null?'':v.order)+'" placeholder="Order number for sorting"></div>';
+    case 'positions':
+      v=Array.isArray(v)?v:[];
+      return '<div data-pos="'+f.id+'">'+v.map(function(p,i){return '<div class="sub-box"><input class="inp" style="margin-bottom:8px" data-pf="'+f.id+'" data-i="'+i+'" data-k="name" value="'+esc(p.name||'')+'" placeholder="Perspective, e.g. Supporters of a federal minimum wage increase">'+
+        '<textarea class="inp" style="min-height:80px;margin-bottom:8px" data-pf="'+f.id+'" data-i="'+i+'" data-k="statement" placeholder="Their position, stated as its supporters would put it">'+esc(p.statement||'')+'</textarea>'+
+        '<textarea class="inp" style="min-height:70px" data-pf="'+f.id+'" data-i="'+i+'" data-k="evidence" placeholder="Evidence and arguments they cite">'+esc(p.evidence||'')+'</textarea>'+
+        '<div style="text-align:right;margin-top:6px"><button type="button" class="btn sm quiet" data-act="pos-del" data-f="'+f.id+'" data-i="'+i+'">Remove position</button></div></div>';}).join('')+
+        '<button type="button" class="btn sm" data-act="pos-add" data-f="'+f.id+'">＋ Add a position</button></div>';
+    case 'date':return '<input class="inp" id="'+id+'" data-f="'+f.id+'" value="'+esc(v||'')+'" placeholder="e.g. 1787, 1787-09-17, or September 17, 1787">';
+    default:return '<input class="inp" id="'+id+'" data-f="'+f.id+'" value="'+esc(v||'')+'"'+ph+'>';
+  }
+}
+function readForm(){
+  if(!draft)return;
+  var m=$('main');
+  var ti=m.querySelector('#d_title');if(ti)draft.title=ti.value;
+  var se=m.querySelector('#d_sec');if(se)draft.sectionId=se.value||null;
+  var tg=m.querySelector('#d_tags');if(tg)draft.tags=tg.value.split(',').map(function(x){return x.trim().replace(/^#/,'');}).filter(Boolean).filter(function(x,i,a){return a.indexOf(x)===i;});
+  m.querySelectorAll('[data-f]').forEach(function(el){
+    if(el.tagName==='BUTTON')return;
+    var fid=el.getAttribute('data-f'),sub=el.getAttribute('data-sub');
+    if(sub){var o=draft.fields[fid];if(!o||typeof o!=='object')o=draft.fields[fid]={};o[sub]=sub==='order'?(el.value===''?null:+el.value):el.value;}
+    else draft.fields[fid]=el.value;
+  });
+  m.querySelectorAll('[data-pf]').forEach(function(el){
+    var fid=el.getAttribute('data-pf'),i=+el.getAttribute('data-i'),k=el.getAttribute('data-k');
+    if(!Array.isArray(draft.fields[fid]))draft.fields[fid]=[];
+    draft.fields[fid][i]=draft.fields[fid][i]||{};draft.fields[fid][i][k]=el.value;
+  });
+  m.querySelectorAll('[data-link-label]').forEach(function(el){var l=draft.links[+el.getAttribute('data-link-label')];if(l)l.label=el.value;});
+}
+function renderEdit(){
+  if(!draft){go({view:'list'});return;}
+  var t=typeById(draft.typeId)||proj.types[0];
+  var h='<form class="form" onsubmit="return false"><h1>'+(draft._isNew?'New entry':'Edit entry')+'</h1>';
+  h+='<label class="f"><span>Title</span><input class="inp title" id="d_title" value="'+esc(draft.title)+'" autocomplete="off" placeholder="Title"></label>';
+  h+='<div class="row2"><label class="f"><span>Type</span><select class="inp" id="d_type" data-act-change="draft-type">'+proj.types.map(function(x){return '<option value="'+x.id+'"'+(x.id===t.id?' selected':'')+'>'+esc(x.icon+' '+x.name)+'</option>';}).join('')+'</select></label>';
+  h+='<label class="f"><span>Section</span><select class="inp" id="d_sec"><option value="">Unsorted</option>'+groups().map(function(g){
+      return '<optgroup label="'+esc(g||'Sections')+'">'+proj.sections.filter(function(s){return (s.group||'')===g;}).map(function(s){return '<option value="'+s.id+'"'+(s.id===draft.sectionId?' selected':'')+'>'+esc(s.name)+'</option>';}).join('')+'</optgroup>';}).join('')+'</select></label></div>';
+  var tipShown=false;
+  t.fields.forEach(function(f){
+    var tip=f.kind==='longtext'&&!tipShown;if(tip)tipShown=true;
+    h+='<div class="f" style="margin-bottom:14px"><span class="f-cap">'+esc(f.label)+'</span>'+fieldInput(f,draft.fields[f.id])+
+      (tip?'<div class="f-hint">Tip: **bold**, *italic*, “- ” for bullets, [[Entry title]] to link another entry.</div>':'')+'</div>';
+  });
+  h+='<label class="f"><span>Tags</span><input class="inp" id="d_tags" value="'+esc((draft.tags||[]).join(', '))+'" placeholder="Comma-separated"></label>';
+  // related entries
+  h+='<div class="f"><span class="f-cap">Related entries</span>';
+  (draft.links||[]).forEach(function(l,i){var o=entryById(l.to);if(!o)return;
+    h+='<div class="link-row"><span class="t">'+esc(typeOf(o).icon+' '+o.title)+'</span><input class="inp" style="width:40%" data-link-label="'+i+'" value="'+esc(l.label||'')+'" placeholder="Relationship (optional)"><button type="button" class="btn sm quiet" data-act="link-del" data-i="'+i+'">✕</button></div>';});
+  var others=proj.entries.filter(function(o){return o.id!==draft.id&&!(draft.links||[]).some(function(l){return l.to===o.id;});}).sort(function(a,b){return a.title.localeCompare(b.title);});
+  if(others.length)h+='<div class="link-row"><select class="inp" id="d_linkTo" style="flex:1"><option value="">Add a related entry…</option>'+others.map(function(o){return '<option value="'+o.id+'">'+esc(typeOf(o).icon+' '+o.title)+'</option>';}).join('')+'</select><button type="button" class="btn sm" data-act="link-add">Add</button></div>';
+  else h+='<div class="mini">Other entries you create can be linked here.</div>';
+  h+='</div>';
+  h+='<div class="form-actions"><button type="button" class="btn pri" data-act="save">Save</button><button type="button" class="btn ghost" data-act="cancel">Cancel</button>'+
+     (draft._isNew?'':'<button type="button" class="btn danger" data-act="delete" style="margin-left:auto">Delete</button>')+'</div></form>';
+  $('main').innerHTML=h;
+  if(draft._isNew)setTimeout(function(){var x=$('d_title');if(x)x.focus();},30);
+}
+function saveDraft(){
+  readForm();
+  if(!draft.title.trim()){toast('Give it a title first.');$('d_title').focus();return;}
+  // tidy positions
+  Object.keys(draft.fields).forEach(function(k){var v=draft.fields[k];if(Array.isArray(v))draft.fields[k]=v.filter(function(p){return p&&(p.name||p.statement||p.evidence);});});
+  var isNew=draft._isNew;delete draft._isNew;
+  draft.title=draft.title.trim();draft.updatedAt=now();
+  if(isNew){draft.createdAt=draft.updatedAt;proj.entries.push(draft);}
+  else{var i=proj.entries.findIndex(function(e){return e.id===draft.id;});if(i>=0)proj.entries[i]=draft;}
+  var id=draft.id;draft=null;save();toast(isNew?'Entry created':'Saved');go({view:'entry',entry:id});
+}
+function deleteEntry(id){
+  var i=proj.entries.findIndex(function(e){return e.id===id;});if(i<0)return;
+  var e=proj.entries.splice(i,1)[0];e.deletedAt=now();proj.trash.unshift(e);
+  if(proj.trash.length>100)proj.trash.length=100;
+  draft=null;save();toast('Moved to Trash');go({view:'list'});
+}
+
+/* ── timeline ── */
+function renderTimeline(){
+  var items=[],undated=0,q=($('q').value||'').trim().toLowerCase();
+  proj.entries.forEach(function(e){
+    if(st.tlSection&&e.sectionId!==st.tlSection)return;
+    if(q){var hay=(e.title+' '+(e.tags||[]).join(' ')+' '+fieldText(e)).toLowerCase();if(q.split(/\s+/).some(function(w){return hay.indexOf(w)<0;}))return;}
+    var w=whenOf(e);if(w)items.push({e:e,w:w});else undated++;});
+  items.sort(function(a,b){return a.w.key-b.w.key;});
+  var h='<div class="list-head"><h1>Timeline</h1><div class="list-tools"><select data-act-change="tl-sec" aria-label="Section"><option value="">All sections</option>'+
+    proj.sections.map(function(s){return '<option value="'+s.id+'"'+(st.tlSection===s.id?' selected':'')+'>'+esc((s.group?s.group+': ':'')+s.name)+'</option>';}).join('')+'</select></div></div><p class="list-desc">Entries with a date, in order.'+(undated?' '+undated+' entr'+(undated===1?'y has':'ies have')+' no date.':'')+'</p>';
+  if(!items.length)h+='<div class="empty"><h3>No dated entries yet</h3><p>Entry types with a date field will appear here.</p></div>';
+  else h+='<div class="tl">'+items.map(function(x){var t=typeOf(x.e),sn=snippet(x.e);
+    return '<div class="tl-item" style="--c:'+esc(t.color)+'" data-act="open" data-id="'+x.e.id+'"><div class="tl-when">'+esc(x.w.label)+'</div><div class="tl-title">'+esc(t.icon)+' '+esc(x.e.title)+'</div>'+(sn?'<div class="tl-snip">'+esc(sn.slice(0,140))+'</div>':'')+'</div>';}).join('')+'</div>';
+  $('main').innerHTML=h;
+}
+
+/* ── scripture index ── */
+function renderScripture(){
+  var hits=[],unknown=[];
+  proj.entries.forEach(function(e){typeOf(e).fields.forEach(function(f){if(f.kind!=='refs')return;
+    splitRefs(e.fields[f.id]).forEach(function(x){var r=parseRef(x);if(r&&r.work)hits.push({r:r,e:e});else unknown.push({raw:x,e:e});});});});
+  var h='<div class="list-head"><h1>Scripture index</h1></div><p class="list-desc">Every scripture reference in your entries, in canonical order. Tap a reference to open it in Gospel Library, or an entry name to open your notes.</p>';
+  if(!hits.length&&!unknown.length){$('main').innerHTML=h+'<div class="empty"><h3>No references yet</h3><p>Add scriptures to an entry’s scripture fields, one per line, like “Alma 32:21”.</p></div>';return;}
+  WORKS.forEach(function(w){
+    var inWork=hits.filter(function(x){return x.r.work===w[0];});if(!inWork.length)return;
+    h+='<div class="si-work"><h2>'+esc(w[1])+'</h2>';
+    var books={};inWork.forEach(function(x){(books[x.r.bookIndex]=books[x.r.bookIndex]||[]).push(x);});
+    Object.keys(books).map(Number).sort(function(a,b){return a-b;}).forEach(function(bi){
+      var refs={};books[bi].forEach(function(x){var k=x.r.label;(refs[k]=refs[k]||{r:x.r,es:[]}).es.push(x.e);});
+      var arr=Object.keys(refs).map(function(k){return refs[k];}).sort(function(a,b){return a.r.ch-b.r.ch||a.r.v-b.r.v;});
+      h+='<div class="si-book"><div class="si-book-name">'+esc(BOOKS[bi][2])+'</div><div class="si-refs">'+arr.map(function(x){
+        var seen={};return '<div class="si-ref"><a class="ref" href="'+esc(x.r.url)+'" target="_blank" rel="noopener">'+esc(x.r.label)+' ↗</a>'+
+          x.es.filter(function(e){if(seen[e.id])return false;seen[e.id]=1;return true;}).map(function(e){return '<span class="ent" data-act="open" data-id="'+e.id+'">'+esc(e.title)+'</span>';}).join(' · ')+'</div>';}).join('')+'</div></div>';
+    });
+    h+='</div>';
+  });
+  if(unknown.length)h+='<div class="si-work"><h2>Other references</h2><p class="mini">These didn’t match a book of scripture. Check the spelling, e.g. “1 Ne. 3:7” or “D&amp;C 76:22”.</p>'+unknown.map(function(x){return '<div class="si-ref"><span class="ref plain">'+esc(x.raw)+'</span><span class="ent" data-act="open" data-id="'+x.e.id+'">'+esc(x.e.title)+'</span></div>';}).join('')+'</div>';
+  $('main').innerHTML=h;
+}
+
+/* ── trash ── */
+function renderTrash(){
+  var h='<div class="list-head"><h1>Trash</h1>'+(proj.trash.length?'<div class="list-tools"><button class="btn sm danger" data-act="trash-empty">Empty trash</button></div>':'')+'</div><p class="list-desc">Deleted entries stay here until you restore them or empty the trash. The 100 most recent are kept.</p>';
+  if(!proj.trash.length)h+='<div class="empty"><h3>Trash is empty</h3></div>';
+  else h+='<div class="cards">'+proj.trash.map(function(e,i){var t=typeOf(e);
+    return '<div class="card" style="--c:'+esc(t.color)+';cursor:default"><div class="card-type">'+esc(t.icon)+' '+esc(t.name)+'</div><div class="card-title">'+esc(e.title)+'</div><div class="card-foot"><span>Deleted '+fmtDate(e.deletedAt)+'</span></div>'+
+      '<div class="set-row"><button class="btn sm" data-act="trash-restore" data-i="'+i+'">Restore</button><button class="btn sm danger" data-act="trash-del" data-i="'+i+'">Delete forever</button></div></div>';}).join('')+'</div>';
+  $('main').innerHTML=h;
+}
+
+/* ── settings ── */
+function renderSettings(){
+  var tabs=[['general','General'],['sections','Sections'],['types','Entry types']];
+  if(P.multiProject)tabs.push(['projects','Projects']);
+  tabs.push(['data','Backups & export']);
+  var h='<div class="list-head"><h1>Settings</h1></div><div class="tabs">'+tabs.map(function(t){return '<button class="tab'+(st.tab===t[0]?' on':'')+'" data-act="tab" data-t="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div><div style="max-width:820px">';
+  if(st.tab==='general'){
+    h+='<div class="set-card"><h3>App name</h3><p>Shown at the top of the page.</p><label class="f"><span>Title</span><input class="inp" data-set="title" value="'+esc(root.settings.title)+'"></label><label class="f" style="margin:0"><span>Subtitle</span><input class="inp" data-set="subtitle" value="'+esc(root.settings.subtitle||'')+'"></label></div>';
+    if(P.allowAccent)h+='<div class="set-card"><h3>Accent color</h3><p>Buttons, links and highlights.</p><div class="set-row"><input type="color" class="inp" data-set="accent" value="'+esc(root.settings.accent||P.defaultAccent)+'"><button class="btn sm quiet" data-act="accent-reset">Reset</button></div></div>';
+    h+='<div class="set-card"><h3>Writing tips</h3><p>In long text fields: **bold**, *italic*, start a line with “- ” for bullets, and type [[Entry title]] to link to another entry. Web addresses become links automatically.'+(P.scripture?' Scripture fields take one reference per line, like “Alma 32:21” or “D&amp;C 76:22–24”, and link to Gospel Library.':'')+'</p></div>';
+  }
+  if(st.tab==='sections'){
+    h+='<p class="mini" style="margin-top:0">Sections organize your entries in the sidebar. Sections that share a group name are listed together. Deleting a section moves its entries to Unsorted. Nothing is lost.</p>';
+    groups().concat(['']).filter(function(g,i,a){return a.indexOf(g)===i;}).forEach(function(g){
+      var secs=proj.sections.filter(function(s){return (s.group||'')===g;});if(!secs.length)return;
+      h+='<div class="group-label">'+esc(g||'No group')+'</div>';
+      secs.forEach(function(s){
+        var n=proj.entries.filter(function(e){return e.sectionId===s.id;}).length;
+        h+='<div class="set-card"><div class="set-row" style="margin-bottom:8px"><input class="inp emoji-inp" data-sec="'+s.id+'" data-p="icon" value="'+esc(s.icon||'')+'" aria-label="Icon" placeholder="·"><input class="inp" data-sec="'+s.id+'" data-p="name" value="'+esc(s.name)+'" aria-label="Section name">'+
+          '<button class="btn sm quiet" data-act="sec-up" data-id="'+s.id+'" aria-label="Move up">↑</button><button class="btn sm quiet" data-act="sec-down" data-id="'+s.id+'" aria-label="Move down">↓</button></div>'+
+          '<div class="row2"><label class="f"><span>Group</span><input class="inp" list="groupList" data-sec="'+s.id+'" data-p="group" value="'+esc(s.group||'')+'"></label>'+
+          '<label class="f"><span>New entries default to</span><select class="inp" data-sec="'+s.id+'" data-p="defaultType"><option value="">(first type)</option>'+proj.types.map(function(t){return '<option value="'+t.id+'"'+(t.id===s.defaultType?' selected':'')+'>'+esc(t.icon+' '+t.name)+'</option>';}).join('')+'</select></label></div>'+
+          '<label class="f"><span>Description</span><input class="inp" data-sec="'+s.id+'" data-p="description" value="'+esc(s.description||'')+'"></label>'+
+          '<div class="set-row"><span class="mini">'+n+' entr'+(n===1?'y':'ies')+'</span><button class="btn sm danger" style="margin-left:auto" data-act="sec-del" data-id="'+s.id+'">Delete section</button></div></div>';
+      });
+    });
+    h+='<datalist id="groupList">'+groups().map(function(g){return '<option value="'+esc(g)+'">';}).join('')+'</datalist>';
+    h+='<div class="set-card"><h3>Add a section</h3><div class="set-row"><input class="inp" id="newSecName" placeholder="Section name"><input class="inp" id="newSecGroup" list="groupList" placeholder="Group (optional)"><button class="btn pri sm" data-act="sec-add">Add</button></div></div>';
+  }
+  if(st.tab==='types'){
+    h+='<p class="mini" style="margin-top:0">Entry types define the fields each kind of entry has. Renaming or removing a field never deletes what you’ve written. Removed fields are just hidden, and adding the same field back shows them again.</p>';
+    proj.types.forEach(function(t){
+      var open=st.openType===t.id,n=proj.entries.filter(function(e){return e.typeId===t.id;}).length;
+      h+='<div class="set-card"><div class="type-head" data-act="type-toggle" data-id="'+t.id+'"><span style="font-size:1.2rem">'+esc(t.icon)+'</span><span class="nm">'+esc(t.name)+'</span><span class="mini">'+t.fields.length+' fields · '+n+' entries</span><span>'+(open?'▾':'▸')+'</span></div>';
+      if(open){
+        h+='<div class="set-row" style="margin:12px 0"><input class="inp emoji-inp" data-type="'+t.id+'" data-p="icon" value="'+esc(t.icon)+'" aria-label="Icon"><input class="inp" data-type="'+t.id+'" data-p="name" value="'+esc(t.name)+'" aria-label="Type name"><input type="color" class="inp" data-type="'+t.id+'" data-p="color" value="'+esc(/^#/.test(t.color)?t.color:'#888888')+'" aria-label="Color"></div>';
+        h+='<div class="f-cap">Fields</div>';
+        t.fields.forEach(function(f,i){
+          h+='<div class="field-row"><input class="inp" data-type="'+t.id+'" data-field="'+f.id+'" data-p="label" value="'+esc(f.label)+'" aria-label="Field label"><select class="inp" data-type="'+t.id+'" data-field="'+f.id+'" data-p="kind">'+KINDS.map(function(k){return '<option value="'+k[0]+'"'+(k[0]===f.kind?' selected':'')+'>'+k[1]+'</option>';}).join('')+'</select>'+
+             '<span style="white-space:nowrap"><button class="btn sm quiet" data-act="fld-up" data-type="'+t.id+'" data-i="'+i+'" aria-label="Move up">↑</button><button class="btn sm quiet" data-act="fld-del" data-type="'+t.id+'" data-i="'+i+'" aria-label="Remove field">✕</button></span></div>';
+          if(f.kind==='select')h+='<input class="inp" style="margin:0 0 8px;font-size:.85rem" data-type="'+t.id+'" data-field="'+f.id+'" data-p="options" value="'+esc(f.options||'')+'" placeholder="Choices, separated by commas">';
+        });
+        h+='<div class="set-row" style="margin-top:8px"><button class="btn sm" data-act="fld-add" data-type="'+t.id+'">＋ Add field</button><button class="btn sm danger" style="margin-left:auto" data-act="type-del" data-id="'+t.id+'"'+(n?' disabled title="Move or delete its entries first"':'')+'>Delete type</button></div>';
+        if(n)h+='<div class="mini" style="text-align:right;margin-top:4px">To delete this type, first change or delete its '+n+' entr'+(n===1?'y':'ies')+'.</div>';
+      }
+      h+='</div>';
+    });
+    h+='<div class="set-card"><h3>Add an entry type</h3><div class="set-row"><input class="inp emoji-inp" id="newTypeIcon" value="📝"><input class="inp" id="newTypeName" placeholder="Type name, e.g. Recipe"><button class="btn pri sm" data-act="type-add">Add</button></div></div>';
+  }
+  if(st.tab==='projects'){
+    h+='<p class="mini" style="margin-top:0">Each project has its own entries, sections and entry types. Switch projects from the menu at the top.</p>';
+    root.projects.forEach(function(p){
+      var on=p.id===proj.id;
+      h+='<div class="set-card"><div class="set-row"><input class="inp" data-proj="'+p.id+'" value="'+esc(p.name)+'" aria-label="Project name"><span class="mini">'+p.entries.length+' entries</span>'+
+        (on?'<span class="chip on">Open</span>':'<button class="btn sm" data-act="proj-open" data-id="'+p.id+'">Open</button>')+
+        '<button class="btn sm quiet" data-act="proj-dup" data-id="'+p.id+'" title="New project with the same sections and types, no entries">Copy setup</button>'+
+        (root.projects.length>1?'<button class="btn sm danger" data-act="proj-del" data-id="'+p.id+'">Delete</button>':'')+'</div></div>';
+    });
+    h+='<div class="set-card"><h3>New project</h3><p>Start from a template. You can change everything afterward.</p><div class="set-row"><input class="inp" id="newProjName" placeholder="Project name"><select class="inp" id="newProjTpl">'+
+      Object.keys(P.templates).map(function(k){return '<option value="'+k+'">'+esc(P.templates[k].label)+'</option>';}).join('')+'</select><button class="btn pri sm" data-act="proj-add">Create</button></div>'+
+      '<div class="mini" style="margin-top:8px">'+Object.keys(P.templates).map(function(k){return '<b>'+esc(P.templates[k].label)+':</b> '+esc(P.templates[k].description);}).join('<br>')+'</div></div>';
+  }
+  if(st.tab==='data'){
+    var undo=null;try{undo=JSON.parse(localStorage.getItem(KEY+'_before_restore_meta'));}catch(e){}
+    h+='<div class="set-card"><h3>Linked backups</h3><p>Back up or restore with one tap using your share sheet, a linked folder, or Google Drive. Backups include '+(P.multiProject?'all projects':'everything')+'.</p><button class="btn pri" data-act="backups">Open Linked Backups</button></div>';
+    if(undo)h+='<div class="set-card"><h3>Undo last restore</h3><p>Your data from just before the restore on '+esc(new Date(undo.at).toLocaleString())+' was saved.</p><button class="btn" data-act="undo-restore">Put it back</button></div>';
+    if(P.archiveExport)h+='<div class="set-card"><h3>Send to The Archive</h3><p>Create a file of entries for your Knowledge Library. Open it there with Import or “Open backup file”. Entries you’ve sent before update their Archive copies instead of duplicating.</p><button class="btn" data-act="archive-export">Export to Archive…</button>'+
+      (proj.meta.lastArchiveExportAt?'<div class="mini" style="margin-top:8px">Last sent '+esc(new Date(proj.meta.lastArchiveExportAt).toLocaleString())+'</div>':'')+'</div>';
+    h+='<div class="set-card"><h3>Wiki export</h3><p>A standalone, read-only web page of '+(P.multiProject?'this project':'all your entries')+' with links between them. Good for sharing or printing.</p><button class="btn" data-act="wiki-export">Create wiki page</button></div>';
+  }
+  h+='</div>';
+  $('main').innerHTML=h;
+}
+
+/* ── Archive export ── */
+function archiveItems(scope,secId){
+  var since=proj.meta.lastArchiveExportAt||'';
+  return proj.entries.filter(function(e){
+    if(scope==='section')return e.sectionId===secId;
+    if(scope==='changed')return !since||(e.updatedAt||'')>since;
+    return true;
+  }).map(function(e){
+    var t=typeOf(e),s=secById(e.sectionId),parts=[],refTags=[];
+    t.fields.forEach(function(f){
+      var v=e.fields[f.id];if(v==null||v===''||(Array.isArray(v)&&!v.length))return;
+      var txt;
+      if(f.kind==='positions')txt=v.map(function(p){return '• '+(p.name||'Position')+(p.statement?'\n  As its supporters put it: '+p.statement:'')+(p.evidence?'\n  Evidence they cite: '+p.evidence:'');}).join('\n\n');
+      else if(f.kind==='when')txt=v.label||String(v.order);
+      else if(f.kind==='refs'){var rs=splitRefs(v);txt=rs.join('; ');rs.forEach(function(x){var r=parseRef(x);refTags.push(r&&r.label?r.label:x);});}
+      else if(f.kind==='list')txt=splitRefs(v).join('; ');
+      else txt=String(v);
+      parts.push(f.label.toUpperCase()+'\n'+txt.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,function(m,a,b){return b||a;}));
+    });
+    var rel=(e.links||[]).map(function(l){var o=entryById(l.to);return o?o.title+(l.label?' ('+l.label+')':''):null;}).filter(Boolean);
+    if(rel.length)parts.push('RELATED\n'+rel.join('; '));
+    var tags=(e.tags||[]).concat(['from '+P.shortName,t.name]).concat(refTags).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
+    return {id:P.appKey+'-'+e.id,source:P.appKey,title:e.title,
+      category:s?(s.group?s.group+': ':'')+s.name:P.shortName,
+      tags:tags,content:parts.join('\n\n'),updatedAt:e.updatedAt||now()};
+  });
+}
+function openArchiveExport(){
+  var since=proj.meta.lastArchiveExportAt;
+  var nAll=archiveItems('all').length,nCh=archiveItems('changed').length;
+  var h='<h2>Export to Archive</h2><p>Creates a file The Archive can import. Each entry becomes an Archive entry. Its section becomes the category, and its fields become labeled text.</p>'+
+   '<label class="radio"><input type="radio" name="ax" value="changed" checked><span><b>New or changed only</b><small>'+(since?nCh+' since your last export on '+esc(fmtDate(since)):'Nothing sent yet, so this includes all '+nCh)+'</small></span></label>'+
+   '<label class="radio"><input type="radio" name="ax" value="all"><span><b>Everything</b><small>'+nAll+' entries. Ones already in The Archive update in place.</small></span></label>'+
+   '<label class="radio"><input type="radio" name="ax" value="section"><span><b>One section</b><small><select class="inp" id="axSec" style="margin-top:6px">'+proj.sections.map(function(s){return '<option value="'+s.id+'">'+esc((s.group?s.group+': ':'')+s.name)+'</option>';}).join('')+'</select></small></span></label>'+
+   '<div class="set-row" style="margin-top:14px"><button class="btn pri" data-act="archive-go">Create Archive file</button><button class="btn ghost" data-act="modal-close">Cancel</button></div>'+
+   '<p class="mini" style="margin-top:12px">Entries you delete here aren’t removed from The Archive. Delete those copies there if you want them gone.</p>';
+  openModal(h);
+}
+function doArchiveExport(){
+  var scope=(document.querySelector('input[name=ax]:checked')||{}).value||'changed';
+  var items=archiveItems(scope,($('axSec')||{}).value);
+  if(!items.length){toast('Nothing to send. No entries match.');return;}
+  var name=slug(P.shortName)+'-to-archive-'+new Date().toISOString().slice(0,10)+'.json';
+  var stampAt=now();
+  BackupLinks.shareOrDownload(JSON.stringify(items,null,2),name).then(function(r){
+    if(r==='cancelled')return;
+    if(scope!=='section'){proj.meta.lastArchiveExportAt=stampAt;save();}
+    closeModal();toast(items.length+' entr'+(items.length===1?'y':'ies')+' ready for The Archive');
+    if(st.view==='settings')renderSettings();
+  });
+}
+
+/* ── wiki export ── */
+function wikiExport(){
+  var title=root.settings.title+(P.multiProject?' — '+proj.name:'');
+  var css='body{font-family:Georgia,serif;max-width:860px;margin:0 auto;padding:30px 20px;color:#222;line-height:1.6;background:#fdfcf8}h1{font-size:2.2rem;margin:0}h2{margin-top:2.4rem;border-bottom:2px solid #ddd;padding-bottom:4px}article{border-top:1px solid #e3e0d8;padding:20px 0}article h3{font-size:1.4rem;margin:0 0 4px}.meta{color:#777;font-size:.85rem;margin-bottom:10px}.lbl{font:600 .72rem/1 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8a6d2f;margin:14px 0 4px}a{color:#7a4f12}.toc{columns:2;font-size:.95rem}.toc a{text-decoration:none}.pos{border-left:3px solid #ddd;padding-left:12px;margin:8px 0}@media print{body{background:#fff}}';
+  var link=function(s){return s.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,function(m,t,l){var e=entryByTitle(t);return e?'<a href="#e-'+e.id+'">'+(l||t)+'</a>':(l||t);});};
+  var body='<h1>'+esc(title)+'</h1><p class="meta">Exported '+esc(new Date().toLocaleString())+' · '+proj.entries.length+' entries</p>';
+  var bySec=[];groups().forEach(function(g){proj.sections.filter(function(s){return (s.group||'')===g;}).forEach(function(s){bySec.push({name:(g?g+': ':'')+s.name,es:proj.entries.filter(function(e){return e.sectionId===s.id;})});});});
+  var orph=proj.entries.filter(function(e){return !e.sectionId||!secById(e.sectionId);});if(orph.length)bySec.push({name:'Unsorted',es:orph});
+  bySec=bySec.filter(function(x){return x.es.length;});
+  bySec.forEach(function(x){x.es.sort(function(a,b){return a.title.localeCompare(b.title);});});
+  body+='<div class="toc">'+bySec.map(function(x){return '<p><b>'+esc(x.name)+'</b><br>'+x.es.map(function(e){return '<a href="#e-'+e.id+'">'+esc(e.title)+'</a>';}).join('<br>')+'</p>';}).join('')+'</div>';
+  bySec.forEach(function(x){
+    body+='<h2>'+esc(x.name)+'</h2>';
+    x.es.forEach(function(e){var t=typeOf(e);
+      body+='<article id="e-'+e.id+'"><h3>'+esc(e.title)+'</h3><div class="meta">'+esc(t.icon+' '+t.name)+((e.tags||[]).length?' · #'+e.tags.map(esc).join(' #'):'')+'</div>';
+      t.fields.forEach(function(f){var v=e.fields[f.id];if(v==null||v===''||(Array.isArray(v)&&!v.length))return;
+        var r;
+        if(f.kind==='positions')r=v.map(function(p){return '<div class="pos"><b>'+esc(p.name||'')+'</b>'+(p.statement?'<p>'+esc(p.statement).replace(/\n/g,'<br>')+'</p>':'')+(p.evidence?'<p><i>Evidence they cite:</i> '+esc(p.evidence).replace(/\n/g,'<br>')+'</p>':'')+'</div>';}).join('');
+        else if(f.kind==='refs')r=splitRefs(v).map(function(x){var p=parseRef(x);return p&&p.url?'<a href="'+esc(p.url)+'">'+esc(p.label)+'</a>':esc(x);}).join(' · ');
+        else if(f.kind==='when')r=esc(v.label||v.order);
+        else if(f.kind==='list')r=splitRefs(v).map(esc).join(' · ');
+        else r=link(esc(v)).replace(/\n/g,'<br>');
+        body+='<div class="lbl">'+esc(f.label)+'</div><div>'+r+'</div>';});
+      var rel=(e.links||[]).map(function(l){var o=entryById(l.to);return o?'<a href="#e-'+o.id+'">'+esc(o.title)+'</a>'+(l.label?' ('+esc(l.label)+')':''):null;}).filter(Boolean);
+      if(rel.length)body+='<div class="lbl">Related</div><div>'+rel.join(' · ')+'</div>';
+      body+='</article>';});
+  });
+  var html='<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>'+css+'</style></head><body>'+body+'</body></html>';
+  BackupLinks.shareOrDownload(html,slug(title)+'-wiki.html','text/html').then(function(r){if(r!=='cancelled')toast('Wiki page created');});
+}
+
+/* ── modal ── */
+function openModal(h){$('modalBox').innerHTML=h;$('modal').classList.add('on');}
+function closeModal(){$('modal').classList.remove('on');}
+
+/* ── routing ── */
+function go(patch){
+  if(st.view==='edit'&&patch.view!=='edit')draft=draft&&patch.keepDraft?draft:null;
+  Object.keys(patch).forEach(function(k){st[k]=patch[k];});
+  render();
+  if(!patch.noScroll)window.scrollTo(0,0);
+  closeMenu();
+}
+function render(){
+  applyBrand();renderSide();
+  switch(st.view){
+    case 'entry':renderEntry();break;case 'edit':renderEdit();break;case 'timeline':renderTimeline();break;
+    case 'scripture':renderScripture();break;case 'trash':renderTrash();break;case 'settings':renderSettings();break;
+    default:renderList();
+  }
+}
+function applyBrand(){
+  $('brandTitle').textContent=root.settings.title||P.title;
+  $('brandSub').textContent=P.multiProject?proj.name:(root.settings.subtitle||'');
+  document.title=root.settings.title||P.title;
+  if(P.allowAccent){var a=root.settings.accent||P.defaultAccent;document.documentElement.style.setProperty('--accent',a);
+    document.documentElement.style.setProperty('--accent-soft',hexA(a,.14));document.documentElement.style.setProperty('--accent-line',hexA(a,.45));}
+  var ps=$('projSel');
+  if(P.multiProject){ps.hidden=false;ps.innerHTML=root.projects.map(function(p){return '<option value="'+p.id+'"'+(p.id===proj.id?' selected':'')+'>'+esc(p.name)+'</option>';}).join('');}
+}
+function hexA(h,a){var m=/^#?([0-9a-f]{6})$/i.exec(h);if(!m)return h;var n=parseInt(m[1],16);return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+function openMenu(){$('side').classList.add('open');$('scrim').classList.add('on');}
+function closeMenu(){$('side').classList.remove('open');$('scrim').classList.remove('on');}
+function switchProject(id){
+  var p=root.projects.filter(function(x){return x.id===id;})[0];if(!p)return;
+  proj=p;root.activeProject=id;save();go({view:'list',section:null,type:null,tag:null,entry:null});
+}
+
+/* ── events ── */
+document.addEventListener('click',function(ev){
+  var b=ev.target.closest('[data-act]');if(!b)return;
+  var a=b.getAttribute('data-act'),id=b.getAttribute('data-id');
+  if(st.view==='edit'&&draft&&/^(link-|pos-)/.test(a))readForm();
+  switch(a){
+    case 'menu':openMenu();break;case 'menu-close':closeMenu();break;
+    case 'home':case 'all':go({view:'list',section:null,type:null,tag:null});break;
+    case 'view':go({view:b.getAttribute('data-v')});break;
+    case 'section':go({view:'list',section:id,type:null});break;
+    case 'type':go({view:'list',type:id,section:null});break;
+    case 'type-in-sec':go({view:'list',type:id,noScroll:true});break;
+    case 'type-clear':go({view:'list',type:null,noScroll:true});break;
+    case 'tag':go({view:'list',tag:b.getAttribute('data-tag'),section:null,type:null});break;
+    case 'tag-clear':go({view:'list',tag:null,noScroll:true});break;
+    case 'open':go({view:'entry',entry:id});break;
+    case 'new':startEdit(null,{sectionId:st.view==='list'&&st.section&&st.section!=='__none'?st.section:null,typeId:st.view==='list'&&st.type?st.type:null});break;
+    case 'edit':startEdit(id);break;
+    case 'save':saveDraft();break;
+    case 'cancel':var back=draft&&!draft._isNew?draft.id:null;draft=null;go(back?{view:'entry',entry:back}:{view:'list'});break;
+    case 'delete':armOrRun(b,function(){deleteEntry(draft.id);});break;
+    case 'link-add':var to=$('d_linkTo').value;if(to){draft.links=draft.links||[];draft.links.push({to:to,label:''});renderEdit();}break;
+    case 'link-del':draft.links.splice(+b.getAttribute('data-i'),1);renderEdit();break;
+    case 'pos-add':{var f=b.getAttribute('data-f');if(!Array.isArray(draft.fields[f]))draft.fields[f]=[];draft.fields[f].push({name:'',statement:'',evidence:''});renderEdit();break;}
+    case 'pos-del':{var f2=b.getAttribute('data-f');draft.fields[f2].splice(+b.getAttribute('data-i'),1);renderEdit();break;}
+    case 'trash-restore':{var e=proj.trash.splice(+b.getAttribute('data-i'),1)[0];delete e.deletedAt;e.updatedAt=now();proj.entries.push(e);save();toast('Restored');render();break;}
+    case 'trash-del':armOrRun(b,function(){proj.trash.splice(+b.getAttribute('data-i'),1);save();render();});break;
+    case 'trash-empty':armOrRun(b,function(){proj.trash=[];save();render();});break;
+    case 'tab':st.tab=b.getAttribute('data-t');renderSettings();break;
+    case 'quick-section':{var g=b.getAttribute('data-group'),q=(P.quickAdd||[]).filter(function(x){return x.group===g;})[0];
+      var s={id:uid(),name:q.newName||'New section',group:g,icon:q.icon||'·',description:q.description||'',defaultType:q.defaultType||''};
+      proj.sections.push(s);save();st.tab='sections';go({view:'settings'});
+      setTimeout(function(){var el=document.querySelector('[data-sec="'+s.id+'"][data-p="name"]');if(el){el.scrollIntoView({block:'center'});el.focus();el.select();}},50);break;}
+    case 'sec-add':{var nm=$('newSecName').value.trim();if(!nm){$('newSecName').focus();return;}
+      proj.sections.push({id:uid(),name:nm,group:$('newSecGroup').value.trim(),icon:'·',description:'',defaultType:''});save();render();toast('Section added');break;}
+    case 'sec-up':case 'sec-down':{var i=proj.sections.findIndex(function(s){return s.id===id;}),g2=proj.sections[i].group||'',d=a==='sec-up'?-1:1,j=i+d;
+      while(j>=0&&j<proj.sections.length&&(proj.sections[j].group||'')!==g2)j+=d;
+      if(j>=0&&j<proj.sections.length){var tmp=proj.sections[i];proj.sections[i]=proj.sections[j];proj.sections[j]=tmp;save();render();}break;}
+    case 'sec-del':armOrRun(b,function(){proj.sections=proj.sections.filter(function(s){return s.id!==id;});proj.entries.forEach(function(e){if(e.sectionId===id)e.sectionId=null;});
+      if(st.section===id)st.section=null;save();render();toast('Section deleted. Its entries are in Unsorted.');});break;
+    case 'type-toggle':st.openType=st.openType===id?null:id;renderSettings();break;
+    case 'type-add':{var tn=$('newTypeName').value.trim();if(!tn){$('newTypeName').focus();return;}
+      var nt={id:'t'+uid(),name:tn,icon:$('newTypeIcon').value.trim()||'📝',color:'#8a9bb0',fields:[{id:'notes',label:'Notes',kind:'longtext'}]};
+      proj.types.push(nt);st.openType=nt.id;save();render();break;}
+    case 'type-del':armOrRun(b,function(){proj.types=proj.types.filter(function(t){return t.id!==id;});save();render();});break;
+    case 'fld-add':{var tt=typeById(b.getAttribute('data-type'));tt.fields.push({id:'f'+uid(),label:'New field',kind:'text'});save();renderSettings();
+      setTimeout(function(){var all=document.querySelectorAll('[data-type="'+tt.id+'"][data-p="label"]');var el=all[all.length-1];if(el){el.focus();el.select();}},30);break;}
+    case 'fld-del':{var t3=typeById(b.getAttribute('data-type'));armOrRun(b,function(){t3.fields.splice(+b.getAttribute('data-i'),1);save();renderSettings();});break;}
+    case 'fld-up':{var t4=typeById(b.getAttribute('data-type')),k=+b.getAttribute('data-i');if(k>0){var x=t4.fields[k];t4.fields[k]=t4.fields[k-1];t4.fields[k-1]=x;save();renderSettings();}break;}
+    case 'accent-reset':root.settings.accent=null;save();render();break;
+    case 'proj-open':switchProject(id);break;
+    case 'proj-add':{var pn=$('newProjName').value.trim()||'Untitled project';var np=makeProject(pn,$('newProjTpl').value);root.projects.push(np);switchProject(np.id);toast('Project created');break;}
+    case 'proj-dup':{var src=root.projects.filter(function(p){return p.id===id;})[0];
+      var cp={id:uid(),name:src.name+' (copy)',template:src.template,sections:clone(src.sections),types:clone(src.types),entries:[],trash:[],meta:{}};
+      root.projects.push(cp);save();render();toast('New project with the same setup');break;}
+    case 'proj-del':armOrRun(b,function(){root.projects=root.projects.filter(function(p){return p.id!==id;});if(proj.id===id)proj=root.projects[0];root.activeProject=proj.id;save();render();toast('Project deleted');});break;
+    case 'backups':backups.open();break;
+    case 'undo-restore':armOrRun(b,function(){
+      try{var prev=localStorage.getItem(KEY+'_before_restore');if(!prev)throw 0;localStorage.setItem(KEY,prev);localStorage.removeItem(KEY+'_before_restore');localStorage.removeItem(KEY+'_before_restore_meta');
+        load();go({view:'list',section:null,type:null,tag:null});toast('Restored your earlier data');}catch(e){toast('Nothing to undo.');}});break;
+    case 'archive-export':openArchiveExport();break;
+    case 'archive-go':doArchiveExport();break;
+    case 'wiki-export':wikiExport();break;
+    case 'modal-close':closeModal();break;
+  }
+});
+document.addEventListener('change',function(ev){
+  var el=ev.target,ac=el.getAttribute('data-act-change');
+  if(ac==='sort'){st.sort=el.value;renderList();return;}
+  if(ac==='tl-sec'){st.tlSection=el.value||null;renderTimeline();return;}
+  if(ac==='draft-type'){readForm();draft.typeId=el.value;renderEdit();return;}
+  if(el.id==='projSel'){switchProject(el.value);return;}
+  var p=el.getAttribute('data-p'),v=el.value;
+  if(el.hasAttribute('data-set')){root.settings[el.getAttribute('data-set')]=v;save();applyBrand();return;}
+  if(el.hasAttribute('data-sec')){var s=secById(el.getAttribute('data-sec'));if(s){s[p]=v;save();renderSide();if(p==='group')renderSettings();}return;}
+  if(el.hasAttribute('data-type')){var t=typeById(el.getAttribute('data-type'));if(!t)return;
+    if(el.hasAttribute('data-field')){var f=t.fields.filter(function(x){return x.id===el.getAttribute('data-field');})[0];if(f){f[p]=v;save();if(p==='kind')renderSettings();}}
+    else{t[p]=v;save();renderSide();}return;}
+  if(el.hasAttribute('data-proj')){var pr=root.projects.filter(function(x){return x.id===el.getAttribute('data-proj');})[0];if(pr){pr.name=v.trim()||pr.name;save();applyBrand();}}
+});
+$('q').addEventListener('input',function(){
+  if(st.view==='timeline'){renderTimeline();return;}
+  if(this.value.trim()&&(st.section||st.type||st.tag)){st.section=null;st.type=null;st.tag=null;}
+  if(st.view!=='list')st.view='list';
+  renderSide();renderList();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){if($('modal').classList.contains('on'))closeModal();else closeMenu();}
+  if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('q').focus();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'&&st.view==='edit'){e.preventDefault();saveDraft();}
+});
+$('modal').addEventListener('click',function(e){if(e.target===$('modal'))closeModal();});
+window.addEventListener('beforeunload',function(e){if(st.view==='edit'&&draft){readForm();if(draft.title||Object.keys(draft.fields).length){e.preventDefault();e.returnValue='';}}});
+
+/* ── boot ── */
+load();save();
+var backups=BackupLinks.init({
+  appKey:P.appKey,appName:P.title,filePrefix:P.appKey+'-backup',driveFolderName:P.title+' Backups',
+  getJSON:function(){return JSON.stringify(root,null,2);},
+  restoreMode:'replace',
+  restoreWarning:'This replaces everything in '+P.title+(P.multiProject?', all projects included,':'')+' with the backup. Your current data is kept so you can undo it from Settings → Backups & export.',
+  restore:function(text){
+    var r;try{r=JSON.parse(text);}catch(e){throw new Error('That file isn’t valid JSON.');}
+    if(!isRoot(r))throw new Error('That file isn’t a '+P.title+' backup.'+(Array.isArray(r)?' (It looks like an Archive file.)':''));
+    var kept=false;
+    try{localStorage.setItem(KEY+'_before_restore',JSON.stringify(root));localStorage.setItem(KEY+'_before_restore_meta',JSON.stringify({at:Date.now()}));kept=true;}catch(e){}
+    localStorage.setItem(KEY,JSON.stringify(r));
+    load();go({view:'list',section:null,type:null,tag:null,entry:null});
+    return 'Restored.'+(kept?' You can undo this from Settings → Backups & export.':'');
+  },
+  footNote:'Backups contain all your data. Restoring replaces what’s here, and you can undo the most recent restore.',
+  theme:P.backupTheme
+});
+render();
+window.__app={get root(){return root;},get proj(){return proj;},go:go,parseRef:parseRef,archiveItems:archiveItems};
+})();
+
+</script>
+</body>
+</html>
